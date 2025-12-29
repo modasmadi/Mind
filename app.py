@@ -1,16 +1,3 @@
-from flask import Flask, render_template, request, jsonify
-import os
-import requests
-
-app = Flask(__name__)
-
-DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
-API_URL = "https://api.deepseek.com/chat/completions"
-
-@app.route("/")
-def home():
-    return render_template("index.html")
-
 @app.route("/chat", methods=["POST"])
 def chat():
     user_message = request.json.get("message")
@@ -28,12 +15,18 @@ def chat():
     }
 
     response = requests.post(API_URL, headers=headers, json=payload)
-    data = response.json()
+
+    try:
+        data = response.json()
+    except:
+        return jsonify({"reply": "⚠️ خطأ في قراءة الرد من السيرفر"})
+
+    # لو في خطأ من DeepSeek
+    if "choices" not in data:
+        return jsonify({
+            "reply": f"⚠️ خطأ من DeepSeek API:\n{data}"
+        })
 
     return jsonify({
         "reply": data["choices"][0]["message"]["content"]
     })
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
