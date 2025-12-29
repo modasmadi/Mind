@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request, jsonify
 import os
-from openai import OpenAI
+import requests
 
 app = Flask(__name__)
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
+API_URL = "https://api.deepseek.com/chat/completions"
 
 @app.route("/")
 def home():
@@ -13,15 +15,23 @@ def home():
 def chat():
     user_message = request.json.get("message")
 
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
+    headers = {
+        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "model": "deepseek-chat",
+        "messages": [
             {"role": "user", "content": user_message}
         ]
-    )
+    }
+
+    response = requests.post(API_URL, headers=headers, json=payload)
+    data = response.json()
 
     return jsonify({
-        "reply": response.choices[0].message.content
+        "reply": data["choices"][0]["message"]["content"]
     })
 
 if __name__ == "__main__":
