@@ -5,184 +5,272 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7736190853268583"
         crossorigin="anonymous"></script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>البلورة السحرية AI 🔮</title>
-    <meta name="description"
-        content="اكتشف مستقبلك، حلل شخصيتك، واعرف نسبة حبك بالذكاء الاصطناعي. جرب البلورة السحرية الآن!">
-
-    <!-- Social Sharing (Open Graph) -->
-    <meta property="og:title" content="🔮 البلورة السحرية (Mind): اكتشف خبايا مستقبلك!">
-    <meta property="og:description"
-        content="هل شريكك يحبك؟ متى ستصبح غنياً؟ ماذا يعني حلمك؟ الذكاء الاصطناعي يجيبك الآن.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mind AI | مساعدك الشخصي</title>
+    <meta name="description" content="تطبيقك اليومي الشامل: تحليل شخصية، تنظيم أهداف، أدوات ذكية، ولياقة بدنية.">
+    <!-- Social Sharing -->
+    <meta property="og:title" content="Mind AI: تطبيق حياتك اليومية">
+    <meta property="og:description" content="نظم حياتك، اعرف مستقبلك، وحافظ على لياقتك في مكان واحد.">
     <meta property="og:image" content="preview.png">
     <meta property="og:url" content="https://modasmadi.github.io/Mind/">
     <meta property="og:type" content="website">
 
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;500;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
     <div class="stars"></div>
     <div class="twinkling"></div>
 
-    <div class="container main-container">
-        <header>
-            <div class="logo-icon">🔮</div>
-            <h1>البلورة السحرية <span class="ai-badge">AI</span></h1>
-            <p>اكتشف خبايا مستقبلك، شخصيتك، وعلاقاتك</p>
+    <!-- App Container -->
+    <div class="app-container">
+
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">🔮 Mind <span class="badge">AI</span></div>
+                <div class="streak-badge">🔥 <span id="streak-count">0</span> يوم</div>
+            </div>
         </header>
 
-        <!-- Main Dashboard -->
-        <main id="dashboard" class="grid-menu">
-            <div class="card glass-card" onclick="openSection('love')">
-                <div class="icon">❤️</div>
-                <h3>مقياس الحب</h3>
-                <p>نسبة التوافق العاطفي</p>
-            </div>
-            <div class="card glass-card" onclick="openSection('money')">
-                <div class="icon">💰</div>
-                <h3>متى سأصبح غنياً؟</h3>
-                <p>توقع مستقبلك المالي</p>
-            </div>
-            <div class="card glass-card" onclick="openSection('dream')">
-                <div class="icon">🌙</div>
-                <h3>مفسر الأحلام</h3>
-                <p>كشف خبايا المنام</p>
-            </div>
-            <div class="card glass-card" onclick="openSection('personality')">
-                <div class="icon">🧠</div>
-                <h3>تحليل الشخصية</h3>
-                <p>أسرار اسمك</p>
-            </div>
-            <div class="card glass-card" onclick="openSection('luck')">
-                <div class="icon">🍀</div>
-                <h3>رسالة الحظ</h3>
-                <p>رسالة الكون لك</p>
-            </div>
-            <div class="card glass-card" onclick="openSection('decision')">
-                <div class="icon">⚖️</div>
-                <h3>محكمة القرار</h3>
-                <p>محتار؟ دعنا نقرر لك</p>
-            </div>
-            <div class="card glass-card" onclick="openSection('baby')">
-                <div class="icon">👶</div>
-                <h3>اسم طفلي</h3>
-                <p>اقتراح اسم مولودك</p>
-            </div>
-            <div class="card glass-card" onclick="openSection('animal')">
-                <div class="icon">🦁</div>
-                <h3>حيوانك الروحي</h3>
-                <p>ماذا تشبه شخصيتك؟</p>
-            </div>
-            <div class="card glass-card" onclick="openSection('calculator')">
-                <div class="icon">🧮</div>
-                <h3>الآلة الحاسبة</h3>
-                <p>علمية وبسيطة للدراسة</p>
-            </div>
-            <div class="card glass-card" onclick="openSection('stopwatch')">
-                <div class="icon">⏱️</div>
-                <h3>ساعة الإيقاف</h3>
-                <p>احسب وقتك بدقة</p>
-            </div>
-        </main>
+        <!-- Main Pages (Tab Content) -->
+        <div id="pages-container">
 
-        <!-- Sections -->
+            <!-- Page 1: Entertainment (Home) -->
+            <div id="page-home" class="page active-page">
+                <h2 class="section-title">✨ اكتشف المجهول</h2>
+                <div class="grid-menu">
+                    <div class="glass-card" onclick="openTool('love')">
+                        <i class="fa-solid fa-heart icon" style="color:#ff7675;"></i>
+                        <h3>مقياس الحب</h3>
+                    </div>
+                    <div class="glass-card" onclick="openTool('money')">
+                        <i class="fa-solid fa-sack-dollar icon" style="color:#fdcb6e;"></i>
+                        <h3>الثروة</h3>
+                    </div>
+                    <div class="glass-card" onclick="openTool('luck')">
+                        <i class="fa-solid fa-clover icon" style="color:#00b894;"></i>
+                        <h3>رسالة الحظ</h3>
+                    </div>
+                    <div class="glass-card" onclick="openTool('animal')">
+                        <i class="fa-solid fa-paw icon" style="color:#e17055;"></i>
+                        <h3>الحيوان الروحي</h3>
+                    </div>
+                    <div class="glass-card" onclick="openTool('baby')">
+                        <i class="fa-solid fa-baby icon" style="color:#74b9ff;"></i>
+                        <h3>اسم طفلي</h3>
+                    </div>
+                </div>
+            </div>
 
-        <!-- Love Section -->
-        <section id="love-section" class="hidden tool-section">
-            <button class="back-btn" onclick="goHome()">🔙 عودة</button>
-            <h2>❤️ مقياس الحب الحقيقي</h2>
+            <!-- Page 2: Mind & Soul -->
+            <div id="page-mind" class="page">
+                <h2 class="section-title">🧠 العقل والنفس</h2>
+                <div class="grid-menu">
+                    <div class="glass-card" onclick="openTool('dream')">
+                        <i class="fa-solid fa-moon icon" style="color:#a29bfe;"></i>
+                        <h3>مفسر الأحلام</h3>
+                    </div>
+                    <div class="glass-card" onclick="openTool('personality')">
+                        <i class="fa-solid fa-fingerprint icon" style="color:#fab1a0;"></i>
+                        <h3>تحليل الشخصية</h3>
+                    </div>
+                    <div class="glass-card" onclick="openTool('decision')">
+                        <i class="fa-solid fa-scale-balanced icon" style="color:#dfe6e9;"></i>
+                        <h3>محكمة القرار</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 3: Tools -->
+            <div id="page-tools" class="page">
+                <h2 class="section-title">🛠️ أدوات ذكية</h2>
+                <div class="grid-menu">
+                    <div class="glass-card" onclick="openTool('calculator')">
+                        <i class="fa-solid fa-calculator icon" style="color:#0984e3;"></i>
+                        <h3>الحاسبة</h3>
+                    </div>
+                    <div class="glass-card" onclick="openTool('stopwatch')">
+                        <i class="fa-solid fa-stopwatch icon" style="color:#d63031;"></i>
+                        <h3>ساعة الإيقاف</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page 4: Gym (NEW) -->
+            <div id="page-gym" class="page">
+                <h2 class="section-title">💪 النادي واللياقة</h2>
+
+                <!-- BMI Tool -->
+                <div class="gym-panel">
+                    <h3>⚖️ حساب كتلة الجسم (BMI)</h3>
+                    <div class="input-group">
+                        <input type="number" id="weight" placeholder="الوزن (kg)">
+                        <input type="number" id="height" placeholder="الطول (cm)">
+                    </div>
+                    <button class="action-btn small-btn" onclick="calcBMI()">احسب</button>
+                    <div id="bmi-result" class="result-box hidden"></div>
+                </div>
+
+                <!-- Workout Tool -->
+                <div class="gym-panel">
+                    <h3>🏋️‍♂️ جدول تمرين مقترح</h3>
+                    <select id="muscle-group">
+                        <option value="chest">صدر (Chest)</option>
+                        <option value="back">ظهر (Back)</option>
+                        <option value="legs">أرجل (Legs)</option>
+                        <option value="arms">أذرع (Arms)</option>
+                    </select>
+                    <button class="action-btn small-btn" onclick="getWorkout()">اعطني الجدول</button>
+                    <div id="workout-result" class="result-box hidden" style="text-align: right;"></div>
+                </div>
+            </div>
+
+            <!-- Page 5: Goals (NEW) -->
+            <div id="page-goals" class="page">
+                <h2 class="section-title">✅ إنجازاتي اليومية</h2>
+                <div class="goals-container">
+                    <div class="add-goal-box">
+                        <input type="text" id="new-goal-text" placeholder="ما هدفك لليوم؟ (مثلاً: قراءة صفحتين)">
+                        <button onclick="addGoal()" class="plus-btn"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <ul id="goals-list">
+                        <!-- Goals will appear here -->
+                    </ul>
+                    <div id="empty-state" class="empty-goals">
+                        <p>يومك صفحة بيضاء.. اكتب إنجازك الأول! 🚀</p>
+                    </div>
+                </div>
+            </div>
+
+        </div> <!-- End Pages -->
+
+        <!-- Bottom Navigation Bar -->
+        <nav class="bottom-nav">
+            <div class="nav-item active" onclick="switchPage('home')">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>ترفيه</span>
+            </div>
+            <div class="nav-item" onclick="switchPage('mind')">
+                <i class="fa-solid fa-brain"></i>
+                <span>النفس</span>
+            </div>
+            <div class="nav-item" onclick="switchPage('goals')">
+                <div class="fab-circle"><i class="fa-solid fa-check"></i></div> <!-- Featured Item -->
+            </div>
+            <div class="nav-item" onclick="switchPage('gym')">
+                <i class="fa-solid fa-dumbbell"></i>
+                <span>الجيم</span>
+            </div>
+            <div class="nav-item" onclick="switchPage('tools')">
+                <i class="fa-solid fa-toolbox"></i>
+                <span>أدوات</span>
+            </div>
+        </nav>
+
+        <!-- Tool Modals (Popups for Entertainment/Tools) -->
+        <div id="tool-modal" class="modal hidden">
+            <div class="modal-content">
+                <button class="close-modal" onclick="closeTool()">✕</button>
+                <div id="modal-body"></div>
+            </div>
+        </div>
+
+        <!-- Hidden Loading for AI -->
+        <div id="global-loading" class="hidden overlay-loading">
+            <div class="spinner"></div>
+            <p>الذكاء الاصطناعي يحلل...</p>
+        </div>
+
+    </div> <!-- End App Container -->
+
+    <!-- Load content for Modals dynamically to keep HTML clean? 
+         No, let's keep simple structures hidden and clone them. 
+         ACTUALLY: For simplicity, I will re-inject the specific tool sections 
+         inside the modal scripts or keep them as template blocks below. -->
+
+    <!-- TEMPLATES FOR TOOLS (Hidden) -->
+    <div id="templates" class="hidden">
+
+        <!-- Love Template -->
+        <div id="tpl-love">
+            <h2>❤️ مقياس الحب</h2>
             <input type="text" id="name1" placeholder="اسمك">
             <input type="text" id="name2" placeholder="اسم الشريك">
             <button class="action-btn" onclick="calculateLove()">احسب التوافق</button>
             <div id="love-result" class="result-box hidden"></div>
-        </section>
+        </div>
 
-        <!-- Personality Section -->
-        <section id="personality-section" class="hidden tool-section">
-            <button class="back-btn" onclick="goHome()">🔙 عودة</button>
-            <h2>🧠 تحليل الشخصية العميق</h2>
-            <input type="text" id="p-name" placeholder="اكتب اسمك الثلاثي">
-            <button class="action-btn" onclick="analyzePersonality()">حلل شخصيتي</button>
-            <div id="personality-result" class="result-box hidden"></div>
-        </section>
+        <!-- Money Template -->
+        <div id="tpl-money">
+            <h2>💰 متى سأصبح غنياً؟</h2>
+            <input type="text" id="money-name" placeholder="اسمك">
+            <button class="action-btn" onclick="predictMoney()">كشف المستقبل</button>
+            <div id="money-result" class="result-box hidden"></div>
+        </div>
 
-        <!-- Dream Section -->
-        <section id="dream-section" class="hidden tool-section">
-            <button class="back-btn" onclick="goHome()">🔙 عودة</button>
-            <h2>🌙 مفسر الأحلام</h2>
-            <textarea id="dreamInput" placeholder="رأيت في منامي..."></textarea>
-            <button class="action-btn" onclick="interpretDream()">فسّر الحلم</button>
-            <div id="dream-result" class="result-box hidden"></div>
-        </section>
-
-        <!-- Luck Section -->
-        <section id="luck-section" class="hidden tool-section">
-            <button class="back-btn" onclick="goHome()">🔙 عودة</button>
-            <h2>🍀 رسالة الحظ اليومية</h2>
-            <p>اضغط لاستلام رسالتك الكونية...</p>
+        <!-- Luck Template -->
+        <div id="tpl-luck">
+            <h2>🍀 رسالة الحظ</h2>
             <div class="crystal-ball-wrapper" onclick="getLuck()">
                 <div class="crystal-ball-lg"></div>
             </div>
+            <p>اضغط الكرة لمعرفة حظك</p>
             <div id="luck-result" class="result-box hidden"></div>
-        </section>
+        </div>
 
-        <!-- Money Section -->
-        <section id="money-section" class="hidden tool-section">
-            <button class="back-btn" onclick="goHome()">🔙 عودة</button>
-            <h2>💰 متى سأصبح غنياً؟</h2>
-            <p>دع الذكاء الاصطناعي يحلل طالك المالي 🤑</p>
-            <input type="text" id="money-name" placeholder="اسمك">
-            <button class="action-btn" onclick="predictMoney()">كشف المستقبل المالي</button>
-            <div id="money-result" class="result-box hidden"></div>
-        </section>
+        <!-- Dream Template -->
+        <div id="tpl-dream">
+            <h2>🌙 مفسر الأحلام</h2>
+            <textarea id="dreamInput" placeholder="حلمت أنني..."></textarea>
+            <button class="action-btn" onclick="interpretDream()">فسّر الحلم</button>
+            <div id="dream-result" class="result-box hidden"></div>
+        </div>
 
-        <!-- Decision Section -->
-        <section id="decision-section" class="hidden tool-section">
-            <button class="back-btn" onclick="goHome()">🔙 عودة</button>
+        <!-- Personality Template -->
+        <div id="tpl-personality">
+            <h2>🧠 تحليل الشخصية</h2>
+            <input type="text" id="p-name" placeholder="اسمك الثلاثي">
+            <button class="action-btn" onclick="analyzePersonality()">بدء التحليل</button>
+            <div id="personality-result" class="result-box hidden"></div>
+        </div>
+
+        <!-- Decision Template -->
+        <div id="tpl-decision">
             <h2>⚖️ محكمة القرار</h2>
-            <p>محتار في أمر؟ اكتبه وسنقرر لك!</p>
-            <textarea id="decision-input" placeholder="هل أشتري سيارة جديدة؟ هل أسافر؟"></textarea>
+            <textarea id="decision-input" placeholder="هل أسافر؟ هل أشتري...؟"></textarea>
             <button class="action-btn" onclick="makeDecision()">احكم الآن</button>
             <div id="decision-result" class="result-box hidden"></div>
-        </section>
+        </div>
 
-        <!-- Baby Section -->
-        <section id="baby-section" class="hidden tool-section">
-            <button class="back-btn" onclick="goHome()">🔙 عودة</button>
-            <h2>👶 اقتراح اسم طفلي</h2>
-            <p>ولد أم بنت؟ سنختار لك الاسم المثالي.</p>
+        <!-- Baby Template -->
+        <div id="tpl-baby">
+            <h2>👶 اسم طفلي</h2>
             <select id="baby-gender">
-                <option value="boy">ولد 👦</option>
-                <option value="girl">بنت 👧</option>
+                <option value="boy">ولد</option>
+                <option value="girl">بنت</option>
             </select>
-            <input type="text" id="parent-name" placeholder="اسم الأب (اختياري)">
-            <button class="action-btn" onclick="suggestBabyName()">اقترح اسماً</button>
+            <button class="action-btn" onclick="suggestBabyName()">اقتراح</button>
             <div id="baby-result" class="result-box hidden"></div>
-        </section>
+        </div>
 
-        <!-- Animal Section -->
-        <section id="animal-section" class="hidden tool-section">
-            <button class="back-btn" onclick="goHome()">🔙 عودة</button>
-            <h2>🦁 حيوانك الروحي</h2>
-            <p>الرمز الذي يعبر عن قوة شخصيتك</p>
+        <!-- Animal Template -->
+        <div id="tpl-animal">
+            <h2>🦁 الحيوان الروحي</h2>
             <input type="text" id="animal-name" placeholder="اسمك">
-            <button class="action-btn" onclick="findSpiritAnimal()">اظهار حيواني</button>
+            <button class="action-btn" onclick="findSpiritAnimal()">اكتشف</button>
             <div id="animal-result" class="result-box hidden"></div>
-        </section>
+        </div>
 
-        <!-- Calculator Section -->
-        <section id="calculator-section" class="hidden tool-section">
-            <button class="back-btn" onclick="goHome()">🔙 عودة</button>
+        <!-- Calculator Template -->
+        <div id="tpl-calculator">
             <h2>🧮 الحاسبة الذكية</h2>
-            <div class="calc-mode-switch">
-                <button onclick="setCalcMode('simple')" class="active-mode">بسيطة</button>
-                <button onclick="setCalcMode('scientific')">علمية 🧬</button>
-            </div>
             <div class="calculator">
                 <input type="text" id="calc-display" readonly>
-                <div class="calc-keys" id="simple-keys">
+                <div class="calc-keys">
                     <button onclick="appendCalc('7')">7</button><button onclick="appendCalc('8')">8</button><button
                         onclick="appendCalc('9')">9</button><button onclick="chooseOp('/')" class="op-btn">÷</button>
                     <button onclick="appendCalc('4')">4</button><button onclick="appendCalc('5')">5</button><button
@@ -194,48 +282,20 @@
                         class="op-btn">+</button>
                     <button onclick="clearCalc()" class="clear-btn">C</button>
                 </div>
-                <div class="calc-keys hidden" id="scientific-keys">
-                    <!-- Scientific Extra Keys -->
-                    <button onclick="calcFunc('sin')">sin</button><button onclick="calcFunc('cos')">cos</button><button
-                        onclick="calcFunc('tan')">tan</button><button onclick="calcFunc('log')">log</button>
-                    <button onclick="appendCalc('(')">(</button><button onclick="appendCalc(')')">)</button><button
-                        onclick="calcFunc('sqrt')">√</button><button onclick="calcFunc('pow')">^</button>
-                    <!-- Standard Keys Repetition for Layout -->
-                    <button onclick="appendCalc('7')">7</button><button onclick="appendCalc('8')">8</button><button
-                        onclick="appendCalc('9')">9</button><button onclick="chooseOp('/')" class="op-btn">÷</button>
-                    <button onclick="appendCalc('4')">4</button><button onclick="appendCalc('5')">5</button><button
-                        onclick="appendCalc('6')">6</button><button onclick="chooseOp('*')" class="op-btn">×</button>
-                    <button onclick="appendCalc('1')">1</button><button onclick="appendCalc('2')">2</button><button
-                        onclick="appendCalc('3')">3</button><button onclick="chooseOp('-')" class="op-btn">-</button>
-                    <button onclick="appendCalc('0')">0</button><button onclick="appendCalc('.')">.</button><button
-                        onclick="calculate()" class="equal-btn">=</button><button onclick="chooseOp('+')"
-                        class="op-btn">+</button>
-                    <button onclick="clearCalc()" class="clear-btn" style="width:100%">CLEAR</button>
-                </div>
             </div>
-        </section>
+        </div>
 
-        <!-- Stopwatch Section -->
-        <section id="stopwatch-section" class="hidden tool-section">
-            <button class="back-btn" onclick="goHome()">🔙 عودة</button>
+        <!-- Stopwatch Template -->
+        <div id="tpl-stopwatch">
             <h2>⏱️ ساعة الإيقاف</h2>
             <div class="timer-display" id="timer-display">00:00:00</div>
             <div class="timer-controls">
-                <button onclick="startTimer()" class="action-btn" style="background:#2ecc71">ابدأ</button>
-                <button onclick="stopTimer()" class="action-btn" style="background:#e74c3c">توقف</button>
-                <button onclick="resetTimer()" class="action-btn" style="background:#95a5a6">تصفير</button>
+                <button onclick="startTimer()" class="action-btn" style="background:#2ecc71">Start</button>
+                <button onclick="stopTimer()" class="action-btn" style="background:#e74c3c">Stop</button>
+                <button onclick="resetTimer()" class="action-btn" style="background:#95a5a6">Reset</button>
             </div>
-        </section>
-
-        <div id="global-loading" class="hidden overlay-loading">
-            <div class="spinner"></div>
-            <p>الذكاء الاصطناعي يفكر...</p>
         </div>
 
-        <footer>
-            <p>&copy; 2025 Mind AI - <a href="privacy.html" style="color: #ccc; text-decoration: none;">سياسة
-                    الخصوصية</a></p>
-        </footer>
     </div>
 
     <script src="script.js"></script>
