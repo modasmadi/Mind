@@ -8,7 +8,8 @@
 // Configuration & API Keys
 // ==========================================
 const CONFIG = {
-    BACKEND_URL: 'https://your-backend.com/api', // سيتم استبدالها بعد التنصيب
+    GROQ_API_KEY: "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",
+    GEMINI_API_KEY: "AIzaSyDjZZAhl0kh87BQGGxHB2rgwS1NCs16A9c",
     MODEL: "llama-3.3-70b-versatile",
     MAX_TOKENS: 4096,
     STORAGE_KEY: "mind_ai_chats_v3",
@@ -933,26 +934,17 @@ async function sendMessage() {
 
     try {
         let response;
-        const startTime = Date.now();
 
-        // Simulate API call (replace with actual backend)
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // For demo purposes, create a mock response
-        response = `أهلاً! ${text ? `لقد سألتني عن: "${text}"` : 'شكراً لرفع الملف.'}
-        
-أنا Mind AI الإصدار 3.0. في هذا الإصدار الجديد:
-- تحسينات في معالجة الأخطاء
-- دعم أفضل للملفات الكبيرة
-- ميزات صوتية جديدة
-- واجهة مستخدم محسنة
+        if (state.currentFile && state.currentFile.type === 'image') {
+            // Use Gemini for images
+            response = await sendToGemini(text || 'حلل هذه الصورة', state.currentFile.data);
+        } else {
+            // Use Groq for text
+            const messageForAI = state.currentFile && state.currentFile.data
+                ? `${text}\n\n--- محتوى الملف (${state.currentFile.name}) ---\n${state.currentFile.data.substring(0, 15000)}`
+                : text;
 
-هل تحتاج مساعدة في شيء محدد؟`;
-
-        // Simulate processing time
-        const processingTime = Date.now() - startTime;
-        if (processingTime < 1000) {
-            await new Promise(resolve => setTimeout(resolve, 1000 - processingTime));
+            response = await sendToGroq(chat.messages, messageForAI);
         }
 
         // Add assistant message
@@ -989,6 +981,90 @@ async function sendMessage() {
 
     state.isGenerating = false;
     clearFile();
+}
+
+async function sendToGroq(chatMessages, currentMessage) {
+    // Build messages array for API
+    const messages = [
+        { role: 'system', content: SYSTEM_PROMPT }
+    ];
+
+    // Add chat history (last 20 messages)
+    const history = chatMessages.slice(-20);
+    for (const msg of history) {
+        if (msg.role === 'user') {
+            messages.push({ role: 'user', content: msg.content || '' });
+        } else if (msg.role === 'assistant') {
+            messages.push({ role: 'assistant', content: msg.content || '' });
+        }
+    }
+
+    // Replace last user message with enhanced version
+    if (currentMessage && messages.length > 0) {
+        messages[messages.length - 1] = { role: 'user', content: currentMessage };
+    }
+
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`
+        },
+        body: JSON.stringify({
+            model: CONFIG.MODEL,
+            messages: messages,
+            max_tokens: CONFIG.MAX_TOKENS,
+            temperature: 0.7
+        })
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+        throw new Error(data.error.message);
+    }
+
+    return data.choices[0].message.content;
+}
+
+async function sendToGemini(text, imageBase64) {
+    const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${CONFIG.GEMINI_API_KEY}`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [
+                        { text: `${SYSTEM_PROMPT}\n\nالمستخدم: ${text}` },
+                        { inline_data: { mime_type: 'image/jpeg', data: imageBase64 } }
+                    ]
+                }]
+            })
+        }
+    );
+
+    const data = await response.json();
+
+    if (data.error) {
+        throw new Error(data.error.message);
+    }
+
+    if (!data.candidates?.[0]?.content) {
+        throw new Error('لا يوجد رد من الخادم');
+    }
+
+    return data.candidates[0].content.parts[0].text;
+}
+
+function sendQuickPrompt(text) {
+    const input = document.getElementById('message-input');
+    if (input) {
+        input.value = text;
+        updateSendButton();
+        autoResize(input);
+        sendMessage();
+    }
 }
 
 // ==========================================
@@ -1203,16 +1279,6 @@ function updateSendButton() {
     const hasContent = input.value.trim() || state.currentFile;
     sendBtn.classList.toggle('active', hasContent);
     sendBtn.disabled = !hasContent || state.isGenerating;
-}
-
-function sendQuickPrompt(text) {
-    const input = document.getElementById('message-input');
-    if (input) {
-        input.value = text;
-        updateSendButton();
-        autoResize(input);
-        sendMessage();
-    }
 }
 
 // ==========================================
