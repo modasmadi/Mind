@@ -367,11 +367,17 @@ window.viewGratitudeHistory = function () {
     container.classList.remove('hidden');
 };
 
-
-// --- AI CHAT LOGIC (Groq - Free & Fast!) ---
+// --- AI CHAT LOGIC (Multi-Provider with File Support) ---
 const GROQ_API_KEY = "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";
-let currentImageBase64 = null;
+const GEMINI_API_KEY = "AIzaSyDjZZAhl0kh87BQGGxHB2rgwS1NCs16A9c";
+
+let currentFile = null; // {type: 'image'|'pdf'|'doc'|'txt', data: string, name: string}
 let chatHistory = [];
+
+// Initialize PDF.js
+if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
 
 // Helper to get elements from modal
 function getChatElement(selector) {
@@ -379,26 +385,121 @@ function getChatElement(selector) {
     return modal ? modal.querySelector(selector) : null;
 }
 
-window.handleImageUpload = function (input) {
+// Handle all file types
+window.handleFileUpload = async function (input) {
     const file = input.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function (e) {
-        currentImageBase64 = e.target.result.split(',')[1];
-        const prev = getChatElement('#preview-img');
-        if (prev) prev.src = e.target.result;
-        const div = getChatElement('#image-preview');
-        if (div) div.classList.remove('hidden');
-    };
-    reader.readAsDataURL(file);
+
+    const fileName = file.name;
+    const fileType = file.type;
+    const extension = fileName.split('.').pop().toLowerCase();
+
+    // Show loading
+    showFilePreview(fileName, 'جارِ القراءة...');
+
+    try {
+        if (fileType.startsWith('image/')) {
+            // Image file
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentFile = {
+                    type: 'image',
+                    data: e.target.result.split(',')[1],
+                    dataUrl: e.target.result,
+                    name: fileName
+                };
+                showImagePreview(e.target.result, fileName);
+            };
+            reader.readAsDataURL(file);
+
+        } else if (extension === 'pdf') {
+            // PDF file
+            const text = await extractPDFText(file);
+            currentFile = { type: 'pdf', data: text, name: fileName };
+            showFilePreview(fileName, `📄 ${text.length} حرف`, 'fa-file-pdf', '#e74c3c');
+
+        } else if (extension === 'docx' || extension === 'doc') {
+            // Word file
+            const text = await extractWordText(file);
+            currentFile = { type: 'doc', data: text, name: fileName };
+            showFilePreview(fileName, `📝 ${text.length} حرف`, 'fa-file-word', '#2980b9');
+
+        } else if (extension === 'txt') {
+            // Text file
+            const text = await file.text();
+            currentFile = { type: 'txt', data: text, name: fileName };
+            showFilePreview(fileName, `📃 ${text.length} حرف`, 'fa-file-lines', '#27ae60');
+
+        } else {
+            throw new Error('نوع الملف غير مدعوم');
+        }
+    } catch (e) {
+        clearFile();
+        alert('خطأ في قراءة الملف: ' + e.message);
+    }
 };
 
-window.clearImage = function () {
-    currentImageBase64 = null;
+// Extract text from PDF
+async function extractPDFText(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let text = '';
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map(item => item.str).join(' ') + '\n';
+    }
+    return text.trim();
+}
+
+// Extract text from Word
+async function extractWordText(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    return result.value;
+}
+
+// Show file preview
+function showFilePreview(name, info, iconClass = 'fa-file', iconColor = '#fff') {
+    const preview = getChatElement('#file-preview');
+    const fileIcon = getChatElement('#file-icon');
+    const fileName = getChatElement('#file-name');
+    const imagePreview = getChatElement('#image-preview');
+
+    if (imagePreview) imagePreview.classList.add('hidden');
+    if (preview) {
+        preview.classList.remove('hidden');
+        preview.style.display = 'flex';
+    }
+    if (fileIcon) {
+        fileIcon.className = `fa-solid ${iconClass}`;
+        fileIcon.style.color = iconColor;
+    }
+    if (fileName) fileName.innerHTML = `<strong>${name}</strong><br><small style="color:#888">${info}</small>`;
+}
+
+// Show image preview
+function showImagePreview(dataUrl, name) {
+    const imgPreview = getChatElement('#image-preview');
+    const previewImg = getChatElement('#preview-img');
+    const filePreview = getChatElement('#file-preview');
+
+    if (filePreview) filePreview.classList.add('hidden');
+    if (previewImg) previewImg.src = dataUrl;
+    if (imgPreview) imgPreview.classList.remove('hidden');
+}
+
+// Clear file
+window.clearFile = function () {
+    currentFile = null;
     const fileUpload = getChatElement('#file-upload');
-    if (fileUpload) fileUpload.value = "";
-    const preview = getChatElement('#image-preview');
-    if (preview) preview.classList.add('hidden');
+    const filePreview = getChatElement('#file-preview');
+    const imagePreview = getChatElement('#image-preview');
+
+    if (fileUpload) fileUpload.value = '';
+    if (filePreview) { filePreview.classList.add('hidden'); filePreview.style.display = 'none'; }
+    if (imagePreview) imagePreview.classList.add('hidden');
 };
 
 window.handleEnter = function (e) {
@@ -413,47 +514,131 @@ window.sendChatMessage = async function () {
     if (!input) return;
 
     const text = input.value.trim();
-    if (!text) return;
+    if (!text && !currentFile) return;
 
-    appendMessage({ role: 'user', text: text });
-    input.value = "";
-    chatHistory.push({ role: "user", content: text });
+    // Build message text
+    let userMessage = text;
+    let displayMessage = text;
 
+    if (currentFile) {
+        if (currentFile.type === 'image') {
+            displayMessage = text || '📷 تحليل صورة';
+            appendMessage({ role: 'user', text: displayMessage, image: currentFile.dataUrl });
+        } else {
+            displayMessage = text ? `${text}\n\n📎 ${currentFile.name}` : `📎 ${currentFile.name}`;
+            appendMessage({ role: 'user', text: displayMessage });
+            userMessage = `${text}\n\n--- محتوى الملف (${currentFile.name}) ---\n${currentFile.data.substring(0, 15000)}`;
+        }
+    } else {
+        appendMessage({ role: 'user', text: displayMessage });
+    }
+
+    input.value = '';
     const loadingId = appendLoading();
 
     try {
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${GROQ_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: "llama-3.3-70b-versatile",
-                messages: [
-                    { role: "system", content: "أنت مساعد ذكي ودود اسمك Mind AI. أجب باللغة العربية بشكل مختصر ومفيد." },
-                    ...chatHistory
-                ],
-                max_tokens: 1024,
-                temperature: 0.7
-            })
-        });
+        let aiText;
 
-        const data = await response.json();
+        if (currentFile && currentFile.type === 'image') {
+            // Use Gemini for images
+            aiText = await sendToGemini(text || 'حلل هذه الصورة وصفها بالتفصيل', currentFile.data);
+        } else {
+            // Use Groq for text
+            chatHistory.push({ role: "user", content: userMessage });
+            aiText = await sendToGroq();
+            chatHistory.push({ role: "assistant", content: aiText });
+        }
+
         removeLoading(loadingId);
-
-        if (data.error) throw new Error(data.error.message);
-        if (!data.choices || !data.choices[0]) throw new Error("لا يوجد رد");
-
-        const aiText = data.choices[0].message.content;
-        chatHistory.push({ role: "assistant", content: aiText });
         appendMessage({ role: 'model', text: aiText });
+
+        // Check if AI provided code/text that can be downloaded
+        if (currentFile && (currentFile.type === 'txt' || currentFile.type === 'doc')) {
+            addDownloadOption(aiText, currentFile.name);
+        }
 
     } catch (e) {
         removeLoading(loadingId);
-        appendMessage({ role: 'model', text: "🚫 خطأ: " + e.message });
+        appendMessage({ role: 'model', text: '🚫 خطأ: ' + e.message });
     }
+
+    clearFile();
 };
+
+// Send to Groq (text)
+async function sendToGroq() {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${GROQ_API_KEY}`
+        },
+        body: JSON.stringify({
+            model: "llama-3.3-70b-versatile",
+            messages: [
+                { role: "system", content: "أنت مساعد ذكي اسمك Mind AI. أجب بالعربية. إذا طُلب منك تصحيح ملف، قدم النسخة المصححة كاملة." },
+                ...chatHistory
+            ],
+            max_tokens: 4096,
+            temperature: 0.7
+        })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.choices[0].message.content;
+}
+
+// Send to Gemini (images)
+async function sendToGemini(text, imageBase64) {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: [{
+                parts: [
+                    { text: text },
+                    { inline_data: { mime_type: "image/jpeg", data: imageBase64 } }
+                ]
+            }]
+        })
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+    if (!data.candidates?.[0]?.content) throw new Error('لا يوجد رد');
+    return data.candidates[0].content.parts[0].text;
+}
+
+// Add download button for corrected content
+function addDownloadOption(aiText, originalName) {
+    // Check if response contains a code block
+    const codeMatch = aiText.match(/```[\s\S]*?```/);
+    if (codeMatch) {
+        const chat = getChatElement('#chat-messages');
+        const btn = document.createElement('button');
+        btn.className = 'action-btn';
+        btn.style.cssText = 'margin:10px 0; background:#27ae60; max-width:300px;';
+        btn.innerHTML = '<i class="fa-solid fa-download"></i> تحميل النسخة المصححة';
+        btn.onclick = () => {
+            const content = codeMatch[0].replace(/```\w*\n?/g, '').replace(/```$/g, '');
+            downloadFile(content, 'corrected_' + originalName);
+        };
+        chat.appendChild(btn);
+        chat.scrollTop = chat.scrollHeight;
+    }
+}
+
+// Download file
+function downloadFile(content, filename) {
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
 
 function removeLoading(id) {
     const loadDiv = document.getElementById(id);
@@ -478,7 +663,7 @@ function appendMessage(msg) {
             contentHtml += msg.text.replace(/\n/g, '<br>');
         }
     } else {
-        contentHtml += msg.text;
+        contentHtml += msg.text.replace(/\n/g, '<br>');
     }
 
     div.innerHTML = `${avatarInfo}<div class="msg-content">${contentHtml}</div>`;
@@ -494,7 +679,7 @@ function appendLoading() {
     const div = document.createElement('div');
     div.id = id;
     div.className = 'message ai-message';
-    div.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-content"><i class="fa-solid fa-circle-notch fa-spin"></i> جارِ الكتابة...</div>`;
+    div.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-content"><i class="fa-solid fa-circle-notch fa-spin"></i> جارِ المعالجة...</div>`;
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
     return id;

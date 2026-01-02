@@ -8,10 +8,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mind AI | مساعدك الشخصي</title>
 
-    <link rel="stylesheet" href="style.css?v=5.0">
+    <link rel="stylesheet" href="style.css?v=6.0">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- PDF and Document Processing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 </head>
 
 <body>
@@ -285,15 +288,23 @@
                 </div>
 
                 <div class="chat-input-area">
+                    <div id="file-preview" class="hidden"
+                        style="background:#202123; padding:10px; border-radius:8px; margin-bottom:10px; display:flex; align-items:center; gap:10px;">
+                        <i id="file-icon" class="fa-solid fa-file" style="font-size:1.5rem;"></i>
+                        <span id="file-name" style="flex:1; color:#fff;"></span>
+                        <button onclick="clearFile()"
+                            style="background:#e74c3c; border:none; color:white; padding:5px 10px; border-radius:5px; cursor:pointer;">✕</button>
+                    </div>
                     <div id="image-preview" class="hidden">
                         <img id="preview-img" src="" alt="preview" style="height: 50px;">
-                        <button onclick="clearImage()" class="remove-img" style="top:-5px; right:-5px;">✕</button>
+                        <button onclick="clearFile()" class="remove-img" style="top:-5px; right:-5px;">✕</button>
                     </div>
                     <div class="input-wrapper">
-                        <label for="file-upload" class="action-icon-btn"><i class="fa-solid fa-paperclip"></i></label>
-                        <input type="file" id="file-upload" accept="image/*" class="hidden"
-                            onchange="handleImageUpload(this)">
-                        <textarea id="chat-input" placeholder="أرسل رسالة..."
+                        <label for="file-upload" class="action-icon-btn" title="ارفق ملف (صورة، PDF، Word، TXT)"><i
+                                class="fa-solid fa-paperclip"></i></label>
+                        <input type="file" id="file-upload" accept="image/*,.pdf,.doc,.docx,.txt" class="hidden"
+                            onchange="handleFileUpload(this)">
+                        <textarea id="chat-input" placeholder="أرسل رسالة أو ارفق ملف..."
                             onkeypress="handleEnter(event)"></textarea>
                         <button class="action-icon-btn send-btn-icon" onclick="sendChatMessage()"><i
                                 class="fa-solid fa-paper-plane"></i></button>
@@ -304,7 +315,7 @@
 
     </div>
 
-    <script src="script.js?v=6.0"></script>
+    <script src="script.js?v=7.0"></script>
 </body>
 
 </html>
