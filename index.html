@@ -16,13 +16,18 @@
     <meta property="og:type" content="website">
 
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
     <div class="stars"></div>
     <div class="twinkling"></div>
+
+    <!-- Audio Assets (Hidden) -->
+    <audio id="audio-rain" loop src="https://assets.mixkit.co/sfx/preview/mixkit-light-rain-loop-2393.mp3"></audio>
+    <audio id="audio-fire" loop
+        src="https://assets.mixkit.co/sfx/preview/mixkit-campfire-crackling-logs-1569.mp3"></audio>
 
     <!-- App Container -->
     <div class="app-container">
@@ -31,7 +36,11 @@
         <header class="app-header">
             <div class="header-content">
                 <div class="logo">🔮 Mind <span class="badge">AI</span></div>
-                <div class="streak-badge">🔥 <span id="streak-count">0</span> يوم</div>
+                <div class="top-controls">
+                    <div class="streak-badge">🔥 <span id="streak-count">0</span></div>
+                    <button class="theme-btn" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></button>
+                    <!-- Icon switches in JS -->
+                </div>
             </div>
         </header>
 
@@ -191,21 +200,45 @@
     <!-- TEMPLATES FOR TOOLS (Hidden) -->
     <div id="templates" style="display: none !important;">
 
-        <!-- Focus Timer Template (NEW) -->
+        <!-- Focus Timer Template (UPDATED) -->
         <div id="tpl-focus">
             <h2>⏳ مؤقت التركيز (للدراسة)</h2>
             <div class="focus-timer">
+
+                <!-- Time Selection -->
                 <div class="quick-select">
                     <button class="quick-btn" onclick="setFocusTime(25)">25 د</button>
                     <button class="quick-btn" onclick="setFocusTime(45)">45 د</button>
                     <button class="quick-btn" onclick="setFocusTime(60)">60 د</button>
                 </div>
+                <!-- Custom Input -->
                 <input type="number" id="focus-input" placeholder="دقائق مخصصة" style="text-align:center;">
+
+                <!-- Display -->
                 <div id="focus-display" class="focus-display">00:00</div>
+
+                <!-- Controls -->
                 <div class="timer-controls">
                     <button onclick="startFocus()" class="action-btn" style="background:#0984e3">ابدأ التركيز</button>
                     <button onclick="stopFocus()" class="action-btn" style="background:#ff7675">إيقاف</button>
                 </div>
+
+                <!-- White Noise -->
+                <div class="noise-controls">
+                    <div style="text-align:center;">
+                        <button class="noise-btn" id="btn-rain" onclick="toggleNoise('rain')">
+                            <i class="fa-solid fa-cloud-rain"></i>
+                        </button>
+                        <span style="font-size:0.8rem; font-weight:bold;">مطر</span>
+                    </div>
+                    <div style="text-align:center;">
+                        <button class="noise-btn" id="btn-fire" onclick="toggleNoise('fire')">
+                            <i class="fa-solid fa-fire"></i>
+                        </button>
+                        <span style="font-size:0.8rem; font-weight:bold;">نار</span>
+                    </div>
+                </div>
+
             </div>
         </div>
 
