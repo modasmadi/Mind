@@ -369,7 +369,7 @@ window.viewGratitudeHistory = function () {
 
 
 // --- AI CHAT LOGIC (Gemini) ---
-const GEMINI_API_KEY = "AIzaSyCO3_GJso855AiYzwVpkG5oMOUi82ED8cs";
+const GEMINI_API_KEY = "AIzaSyDjZZAhl0kh87BQGGxHB2rgwS1NCs16A9c";
 let currentImageBase64 = null;
 
 // Helper to get elements from modal
