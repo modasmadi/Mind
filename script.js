@@ -75,29 +75,52 @@ const SLASH_COMMANDS = {
     '/صورة': { action: 'image', description: 'تحليل صورة' }
 };
 
-// System prompt for the AI
-const SYSTEM_PROMPT = `أنت Mind AI - العقل الأناني، مساعد ذكاء اصطناعي متطور ومتميز.
+// System prompt for the AI - Enhanced ChatGPT-level intelligence
+const SYSTEM_PROMPT = `أنت Mind AI - العقل الأناني، مساعد ذكاء اصطناعي فائق الذكاء ومتطور.
 
-شخصيتك:
-- ذكي جداً وواثق من نفسك
-- تحب التعلم والتطور باستمرار
-- تجيب بدقة وتفصيل عند الحاجة
-- تستخدم اللغة العربية بطلاقة
-- ودود لكن مباشر في إجاباتك
+## هويتك:
+- أنت ذكاء اصطناعي متقدم بقدرات استثنائية في التحليل والإبداع
+- تتميز بالدقة العالية والفهم العميق للسياق
+- تجمع بين السرعة والجودة في الإجابات
+- شخصيتك ودودة لكن محترفة ومباشرة
 
-قدراتك:
-- تحليل وفهم النصوص والملفات
-- كتابة وتصحيح الأكواد البرمجية
-- الإجابة على الأسئلة المعقدة
-- المساعدة في الكتابة والترجمة
-- تحليل الصور والمستندات
+## قدراتك المتقدمة:
 
-قواعد:
-- أجب دائماً باللغة العربية إلا إذا طُلب غير ذلك
-- استخدم Markdown للتنسيق
-- كن مختصراً عندما يكون ذلك مناسباً
-- قدم أمثلة عملية عند الحاجة
-- اعترف بحدودك إذا لم تعرف شيئاً`;
+### 🧠 التفكير والتحليل:
+- تحليل المشاكل المعقدة خطوة بخطوة
+- التفكير المنطقي والنقدي العميق
+- فهم السياق والنوايا الضمنية
+- تقديم وجهات نظر متعددة
+
+### 💻 البرمجة والتقنية:
+- كتابة أكواد نظيفة ومُوثقة بأي لغة
+- تصحيح الأخطاء وتحسين الأداء
+- شرح الأكواد المعقدة ببساطة
+- اقتراح أفضل الممارسات والبنى
+
+### ✍️ الكتابة والإبداع:
+- كتابة محتوى إبداعي ومقنع
+- تلخيص وإعادة صياغة النصوص
+- الترجمة الدقيقة والطبيعية
+- تحسين الأسلوب والقواعد
+
+### 📊 تحليل البيانات والصور:
+- فهم وتحليل الصور بدقة عالية
+- استخراج المعلومات من المستندات
+- تحليل البيانات وتقديم رؤى
+
+## قواعد أساسية:
+1. أجب بالعربية إلا إذا طُلب غير ذلك
+2. استخدم Markdown للتنسيق (عناوين، قوائم، أكواد)
+3. كن شاملاً عند الحاجة، مختصراً عند الملاءمة
+4. قدم أمثلة عملية وقابلة للتطبيق
+5. اعترف بحدودك بصراحة
+6. فكر خطوة بخطوة للمشاكل المعقدة
+
+## تنسيق الأكواد:
+- استخدم \`\`\`language لتحديد اللغة
+- أضف تعليقات توضيحية
+- قسم الكود لأجزاء منطقية`;
 
 // ==========================================
 // State Management
@@ -997,8 +1020,8 @@ async function sendMessage() {
         let response;
 
         if (state.currentFile && state.currentFile.type === 'image') {
-            // Use Gemini for images
-            response = await sendToGemini(text || 'حلل هذه الصورة', state.currentFile.data);
+            // Use Groq Vision for images (llama-3.2-vision)
+            response = await sendToGroqVision(text || 'حلل هذه الصورة بالتفصيل', state.currentFile.dataUrl);
         } else {
             // Use Groq for text
             const messageForAI = state.currentFile && state.currentFile.data
@@ -1088,21 +1111,99 @@ async function sendToGroq(chatMessages, currentMessage) {
     return data.choices[0].message.content;
 }
 
-async function sendToGemini(text, imageBase64) {
-    // List of models to try (in order of preference)
-    const GEMINI_MODELS = [
-        'gemini-1.5-flash',      // Most stable, good free tier
-        'gemini-1.5-flash-002',  // Stable version
-        'gemini-2.0-flash',      // Newest but may have quota limits
-        'gemini-1.5-pro'         // Fallback pro model
+async function sendToGroqVision(text, imageDataUrl) {
+    // Groq Vision models - llama-3.2-vision is excellent for image analysis
+    const VISION_MODELS = [
+        'llama-3.2-90b-vision-preview',   // Best quality
+        'llama-3.2-11b-vision-preview',   // Faster, still good
     ];
 
     let lastError = null;
 
+    for (const model of VISION_MODELS) {
+        try {
+            console.log(`📷 Trying vision model: ${model}`);
+
+            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: [
+                        {
+                            role: 'system',
+                            content: getCurrentSystemPrompt()
+                        },
+                        {
+                            role: 'user',
+                            content: [
+                                {
+                                    type: 'text',
+                                    text: text
+                                },
+                                {
+                                    type: 'image_url',
+                                    image_url: {
+                                        url: imageDataUrl
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    max_tokens: 4096,
+                    temperature: 0.7
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.error) {
+                const errorMsg = data.error.message?.toLowerCase() || '';
+                if (errorMsg.includes('rate') || errorMsg.includes('limit') || errorMsg.includes('quota')) {
+                    console.log(`⚠️ Model ${model} rate limited, trying next...`);
+                    lastError = new Error(`${model}: حد الاستخدام`);
+                    continue;
+                }
+                throw new Error(data.error.message);
+            }
+
+            if (!data.choices?.[0]?.message?.content) {
+                console.log(`⚠️ Model ${model} no response, trying next...`);
+                lastError = new Error('لا يوجد رد');
+                continue;
+            }
+
+            console.log(`✅ Vision success with: ${model}`);
+            return data.choices[0].message.content;
+
+        } catch (error) {
+            console.log(`❌ Vision model ${model} failed:`, error.message);
+            lastError = error;
+        }
+    }
+
+    // Fallback to Gemini if Groq Vision fails
+    console.log('🔄 Trying Gemini as fallback...');
+    try {
+        return await sendToGeminiFallback(text, imageDataUrl);
+    } catch (geminiError) {
+        console.log('❌ Gemini fallback also failed:', geminiError.message);
+        throw new Error(lastError?.message || 'فشل تحليل الصورة. جرب لاحقاً.');
+    }
+}
+
+// Gemini fallback for images
+async function sendToGeminiFallback(text, imageDataUrl) {
+    // Extract base64 from data URL
+    const base64Data = imageDataUrl.split(',')[1];
+
+    const GEMINI_MODELS = ['gemini-1.5-flash', 'gemini-1.5-flash-002', 'gemini-2.0-flash'];
+
     for (const model of GEMINI_MODELS) {
         try {
-            console.log(`🔄 Trying model: ${model}`);
-
             const response = await fetch(
                 `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${CONFIG.GEMINI_API_KEY}`,
                 {
@@ -1112,49 +1213,23 @@ async function sendToGemini(text, imageBase64) {
                         contents: [{
                             parts: [
                                 { text: `${getCurrentSystemPrompt()}\n\nالمستخدم: ${text}` },
-                                { inline_data: { mime_type: 'image/jpeg', data: imageBase64 } }
+                                { inline_data: { mime_type: 'image/jpeg', data: base64Data } }
                             ]
-                        }],
-                        generationConfig: {
-                            temperature: 0.7,
-                            maxOutputTokens: 2048
-                        }
+                        }]
                     })
                 }
             );
 
             const data = await response.json();
-
-            // Check for quota/rate limit errors - try next model
-            if (data.error) {
-                const errorMsg = data.error.message?.toLowerCase() || '';
-                if (errorMsg.includes('quota') || errorMsg.includes('rate') || errorMsg.includes('limit') || errorMsg.includes('exceeded')) {
-                    console.log(`⚠️ Model ${model} quota exceeded, trying next...`);
-                    lastError = new Error(`${model}: حد الاستخدام`);
-                    continue; // Try next model
-                }
-                // Other errors - throw immediately
-                throw new Error(data.error.message);
+            if (data.error) continue;
+            if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                return data.candidates[0].content.parts[0].text;
             }
-
-            if (!data.candidates?.[0]?.content) {
-                console.log(`⚠️ Model ${model} no response, trying next...`);
-                lastError = new Error('لا يوجد رد');
-                continue;
-            }
-
-            console.log(`✅ Success with model: ${model}`);
-            return data.candidates[0].content.parts[0].text;
-
-        } catch (error) {
-            console.log(`❌ Model ${model} failed:`, error.message);
-            lastError = error;
-            // Continue to next model
+        } catch (e) {
+            continue;
         }
     }
-
-    // All models failed
-    throw new Error(lastError?.message || 'جميع الموديلات فشلت. جرب لاحقاً أو تواصل مع الدعم.');
+    throw new Error('فشل جميع الموديلات');
 }
 
 function sendQuickPrompt(text) {
