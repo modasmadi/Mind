@@ -372,15 +372,21 @@ window.viewGratitudeHistory = function () {
 const GEMINI_API_KEY = "AIzaSyCO3_GJso855AiYzwVpkG5oMOUi82ED8cs";
 let currentImageBase64 = null;
 
+// Helper to get elements from modal
+function getChatElement(selector) {
+    const modal = document.getElementById('modal-body');
+    return modal ? modal.querySelector(selector) : null;
+}
+
 window.handleImageUpload = function (input) {
     const file = input.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function (e) {
         currentImageBase64 = e.target.result.split(',')[1];
-        const prev = document.getElementById('preview-img');
+        const prev = getChatElement('#preview-img');
         if (prev) prev.src = e.target.result;
-        const div = document.getElementById('image-preview');
+        const div = getChatElement('#image-preview');
         if (div) div.classList.remove('hidden');
     };
     reader.readAsDataURL(file);
@@ -388,8 +394,10 @@ window.handleImageUpload = function (input) {
 
 window.clearImage = function () {
     currentImageBase64 = null;
-    document.getElementById('file-upload').value = "";
-    document.getElementById('image-preview').classList.add('hidden');
+    const fileUpload = getChatElement('#file-upload');
+    if (fileUpload) fileUpload.value = "";
+    const preview = getChatElement('#image-preview');
+    if (preview) preview.classList.add('hidden');
 };
 
 window.handleEnter = function (e) {
@@ -400,12 +408,15 @@ window.handleEnter = function (e) {
 };
 
 window.sendChatMessage = async function () {
-    const input = document.getElementById('chat-input');
+    const input = getChatElement('#chat-input');
+    if (!input) return;
+
     const text = input.value.trim();
 
     if (!text && !currentImageBase64) return;
 
-    appendMessage({ role: 'user', text: text, image: currentImageBase64 ? document.getElementById('preview-img').src : null });
+    const previewImg = getChatElement('#preview-img');
+    appendMessage({ role: 'user', text: text, image: currentImageBase64 && previewImg ? previewImg.src : null });
     input.value = "";
 
     // Prepare data
@@ -424,31 +435,34 @@ window.sendChatMessage = async function () {
     const loadingId = appendLoading();
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: [{ parts: parts }] })
         });
 
         const data = await response.json();
-        const loadDiv = document.getElementById(loadingId);
-        if (loadDiv) loadDiv.remove();
+        removeLoading(loadingId);
 
         if (data.error) throw new Error(data.error.message);
-        if (!data.candidates || !data.candidates[0].content) throw new Error("لا يوجد رد من الخادم");
+        if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) throw new Error("لا يوجد رد من الخادم");
 
         const aiText = data.candidates[0].content.parts[0].text;
         appendMessage({ role: 'model', text: aiText });
 
     } catch (e) {
-        const loadDiv = document.getElementById(loadingId);
-        if (loadDiv) loadDiv.remove();
+        removeLoading(loadingId);
         appendMessage({ role: 'model', text: "🚫 عذراً، حدث خطأ: " + e.message });
     }
 };
 
+function removeLoading(id) {
+    const loadDiv = document.getElementById(id);
+    if (loadDiv) loadDiv.remove();
+}
+
 function appendMessage(msg) {
-    const chat = document.getElementById('chat-messages');
+    const chat = getChatElement('#chat-messages');
     if (!chat) return;
 
     const div = document.createElement('div');
@@ -474,7 +488,9 @@ function appendMessage(msg) {
 }
 
 function appendLoading() {
-    const chat = document.getElementById('chat-messages');
+    const chat = getChatElement('#chat-messages');
+    if (!chat) return null;
+
     const id = 'loading-' + Date.now();
     const div = document.createElement('div');
     div.id = id;
