@@ -1,6 +1,9 @@
+
 document.addEventListener('DOMContentLoaded', () => {
     initApp();
 });
+
+// --- CORE APP LOGIC ---
 function initApp() {
     startNewDayLogic();
     try {
@@ -10,9 +13,13 @@ function initApp() {
     try {
         if (localStorage.getItem('mind_theme') === 'light') document.body.classList.add('light-mode');
     } catch (e) { }
-    renderGoals(); renderWater(); renderHabits(); loadDailyQuote();
+    renderGoals();
+    renderWater();
+    renderHabits();
+    loadDailyQuote();
 }
 
+// Navigation
 window.switchPage = function (pageId) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
     const target = document.getElementById('page-' + pageId);
@@ -25,7 +32,7 @@ window.switchPage = function (pageId) {
     if (navs[map[pageId]]) navs[map[pageId]].classList.add('active');
 };
 
-// --- GYM ---
+// --- GYM SECTION ---
 window.calcBMI = function () {
     const w = parseFloat(document.getElementById('weight').value);
     const h = parseFloat(document.getElementById('height').value);
@@ -37,6 +44,7 @@ window.calcBMI = function () {
     res.innerHTML = `<h2 style="color:${color}">${bmi.toFixed(1)}</h2><p>${status}</p>`;
     res.classList.remove('hidden');
 };
+
 window.getWorkout = function () {
     const muscle = document.getElementById('muscle-group').value;
     const res = document.getElementById('workout-result');
@@ -53,6 +61,7 @@ window.getWorkout = function () {
         res.innerHTML = `<h4>💪 تمارين ${muscle.toUpperCase()}</h4><div style="text-align:left; direction:ltr; margin-top:10px; font-weight:bold; line-height:1.6;">${workouts[muscle] || "No Data"}</div>`;
     }, 500);
 };
+
 window.calcTDEE = function () {
     const w = parseFloat(getVal('tdee-weight'));
     const h = parseFloat(getVal('tdee-height'));
@@ -64,6 +73,7 @@ window.calcTDEE = function () {
     const tdee = Math.round(bmr * act);
     setModalHtml('tdee-result', `<div style="text-align:center"><h3>سعرات المحافظة: <span style="color:var(--primary)">${tdee}</span></h3><hr style="border-color:var(--border); margin:10px 0"><p>📉 للتنشف: <b style="color:#e74c3c">${tdee - 500}</b></p><p>📈 للتضخيم: <b style="color:#2ecc71">${tdee + 500}</b></p></div>`);
 };
+
 window.calcOneRepMax = function () {
     const w = parseFloat(getVal('rm-weight')), r = parseFloat(getVal('rm-reps'));
     if (!w || !r) return;
@@ -71,7 +81,7 @@ window.calcOneRepMax = function () {
     setModalHtml('rm-result', `<h2 style="color:var(--accent)">${max} kg</h2><p>قوتك القصوى التقديرية</p>`);
 };
 
-// --- DASHBOARD ---
+// --- DASHBOARD LOGIC ---
 function startNewDayLogic() {
     const today = new Date().toDateString();
     const lastVisit = localStorage.getItem('mind_last_visit');
@@ -84,7 +94,9 @@ function startNewDayLogic() {
         localStorage.setItem('mind_streak_today', 'false');
     }
 }
+
 function defaultHabits() { return [{ text: "🕋 الصلاة في وقتها", done: false }, { text: "📖 قراءة صفحة قرآن", done: false }, { text: "🏃‍♂️ مشي / رياضة", done: false }, { text: "🤐 الصيام عن الكلام السلبي", done: false }]; }
+
 function renderHabits() {
     const list = document.getElementById('habits-list'); if (!list) return;
     const habits = JSON.parse(localStorage.getItem('mind_habits')) || defaultHabits();
@@ -98,11 +110,13 @@ function renderHabits() {
         list.appendChild(li);
     });
 }
+
 window.toggleHabit = function (i) {
     const habits = JSON.parse(localStorage.getItem('mind_habits'));
     habits[i].done = !habits[i].done;
     localStorage.setItem('mind_habits', JSON.stringify(habits)); renderHabits(); checkStreak();
 };
+
 function renderWater() {
     const grid = document.getElementById('water-grid'), disp = document.getElementById('water-count');
     if (!grid) return;
@@ -116,11 +130,13 @@ function renderWater() {
         grid.appendChild(cup);
     }
 }
+
 window.toggleWater = function (i) {
     let count = parseInt(localStorage.getItem('mind_water') || 0);
     if (i < count) count = i; else count = i + 1;
     localStorage.setItem('mind_water', count); renderWater(); checkStreak();
 };
+
 function checkStreak() {
     if (localStorage.getItem('mind_streak_today') === 'true') return;
     const habits = JSON.parse(localStorage.getItem('mind_habits')) || [];
@@ -134,36 +150,96 @@ function checkStreak() {
     }
 }
 
-// --- TOOLS ---
+// --- TOOLS SYSTEM ---
 window.openTool = function (name) {
-    const modal = document.getElementById('tool-modal'), body = document.getElementById('modal-body'), tpl = document.getElementById('tpl-' + name);
+    const modal = document.getElementById('tool-modal');
+    const body = document.getElementById('modal-body');
+    const tpl = document.getElementById('tpl-' + name);
+
     if (!modal || !body || !tpl) { console.error('Tool not found:', name); return; }
+
     body.innerHTML = tpl.innerHTML;
     modal.classList.remove('hidden');
+
+    // Initializations per tool
     if (name === 'calculator') clearCalc();
+    // Chat logic ensures state is preserved if needed, or resets?
+    // For now simple reopen is fine.
 };
+
 window.closeTool = function () {
     const m = document.getElementById('tool-modal');
     if (m) m.classList.add('hidden');
-    stopFocus(); stopTimer(); stopAllNoise();
+
+    // Stop all background activities
+    stopFocus();
+    stopTimer();
+    stopAllNoise();
+    stopBreathing(); // IMPORTANT: Stop breathing on close
 };
+
 window.toggleTheme = function () {
     document.body.classList.toggle('light-mode');
     localStorage.setItem('mind_theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
 };
 
-// Utils
+// --- UTILITIES (Timer, Focus, Calc) ---
 let fInt = null, fS = 0, tInt = null, tS = 0, cStr = "0";
 window.setFocusTime = (m) => { stopFocus(); const i = getModalElement('#focus-input'); if (i) i.value = m; fS = m * 60; udF(); };
 window.startFocus = () => { if (fInt) return; udF(); fInt = setInterval(() => { fS--; if (fS <= 0) { stopFocus(); alert("⏰"); } udF(); }, 1000); };
 window.stopFocus = () => { if (fInt) clearInterval(fInt); fInt = null; };
 function udF() { const e = getModalElement('#focus-display'); if (e) { let m = Math.floor(fS / 60), s = fS % 60; e.innerText = (m < 10 ? '0' + m : m) + ':' + (s < 10 ? '0' + s : s); } }
+
 window.activeOscillators = {};
-window.toggleNoise = (t) => { if (!window.aCtx) { window.aCtx = new (window.AudioContext || window.webkitAudioContext)(); } if (window.aCtx.state === 'suspended') window.aCtx.resume(); const b = document.getElementById('modal-body').querySelector('#btn-' + t); if (window.activeOscillators[t]) { window.activeOscillators[t].stop(); window.activeOscillators[t] = null; if (b) b.classList.remove('playing'); return; } stopAllNoise(); const src = window.aCtx.createBufferSource(), buf = window.aCtx.createBuffer(1, window.aCtx.sampleRate * 2, window.aCtx.sampleRate), d = buf.getChannelData(0); for (let i = 0; i < d.length; i++)d[i] = Math.random() * 2 - 1; src.buffer = buf; src.loop = true; const f = window.aCtx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = t === 'rain' ? 400 : 800; const g = window.aCtx.createGain(); g.gain.value = 0.5; src.connect(f); f.connect(g); g.connect(window.aCtx.destination); src.start(); window.activeOscillators[t] = src; if (b) b.classList.add('playing'); };
-window.stopAllNoise = () => { Object.keys(window.activeOscillators).forEach(k => { if (window.activeOscillators[k]) { try { window.activeOscillators[k].stop(); } catch (e) { } window.activeOscillators[k] = null; } }); const bs = document.querySelectorAll('.noise-btn'); bs.forEach(b => b.classList.remove('playing')); };
+window.window.AudioContext = window.AudioContext || window.webkitAudioContext;
+window.toggleNoise = (t) => {
+    if (!window.AudioContext) return;
+    if (!window.aCtx) window.aCtx = new window.AudioContext();
+    if (window.aCtx.state === 'suspended') window.aCtx.resume();
+    const b = document.getElementById('modal-body').querySelector('#btn-' + t);
+
+    if (window.activeOscillators[t]) {
+        window.activeOscillators[t].stop();
+        window.activeOscillators[t] = null;
+        if (b) b.classList.remove('playing');
+        return;
+    }
+    stopAllNoise();
+
+    const src = window.aCtx.createBufferSource();
+    const buf = window.aCtx.createBuffer(1, window.aCtx.sampleRate * 2, window.aCtx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    src.buffer = buf;
+    src.loop = true;
+
+    const f = window.aCtx.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.value = t === 'rain' ? 400 : 800;
+
+    const g = window.aCtx.createGain();
+    g.gain.value = 0.5;
+
+    src.connect(f); f.connect(g); g.connect(window.aCtx.destination);
+    src.start();
+    window.activeOscillators[t] = src;
+    if (b) b.classList.add('playing');
+};
+window.stopAllNoise = () => {
+    Object.keys(window.activeOscillators).forEach(k => {
+        if (window.activeOscillators[k]) {
+            try { window.activeOscillators[k].stop(); } catch (e) { }
+            window.activeOscillators[k] = null;
+        }
+    });
+    const bs = document.querySelectorAll('.noise-btn');
+    bs.forEach(b => b.classList.remove('playing'));
+};
+
 window.startTimer = () => { if (tInt) return; tInt = setInterval(() => { tS++; const e = getModalElement('#timer-display'); if (e) e.innerText = new Date(tS * 1000).toISOString().substr(11, 8); }, 1000); };
 window.stopTimer = () => { clearInterval(tInt); tInt = null; };
 window.resetTimer = () => { stopTimer(); tS = 0; const e = getModalElement('#timer-display'); if (e) e.innerText = "00:00:00"; };
+
 window.appendCalc = (v) => { if (cStr === "0" || cStr === "Error") cStr = v; else cStr += v; udC(); };
 window.chooseOp = (o) => { if (cStr.slice(-1).match(/[+\-*/]/)) return; cStr += o; udC(); };
 window.clearCalc = () => { cStr = "0"; udC(); };
@@ -174,7 +250,15 @@ function udC() { const e = getModalElement('#calc-display'); if (e) e.value = cS
 
 // Quote & Helpers
 const quotes = ["لا تتوقف.", "اصنع مستقبلك.", "ثق بالله ثم بنفسك.", "الالتزام سر النجاح."];
-function loadDailyQuote() { const b = document.getElementById('daily-quote-text'); if (!b) return; if (localStorage.getItem('mind_quote_date') !== new Date().toDateString()) { localStorage.setItem('mind_quote_date', new Date().toDateString()); localStorage.setItem('mind_quote_text', quotes[Math.floor(Math.random() * quotes.length)]); } b.innerText = localStorage.getItem('mind_quote_text'); }
+function loadDailyQuote() {
+    const b = document.getElementById('daily-quote-text');
+    if (!b) return;
+    if (localStorage.getItem('mind_quote_date') !== new Date().toDateString()) {
+        localStorage.setItem('mind_quote_date', new Date().toDateString());
+        localStorage.setItem('mind_quote_text', quotes[Math.floor(Math.random() * quotes.length)]);
+    }
+    b.innerText = localStorage.getItem('mind_quote_text');
+}
 window.addGoal = () => { const i = document.getElementById('new-goal-text'); if (!i.value) return; const g = JSON.parse(localStorage.getItem('mind_goals_v1') || '[]'); g.push({ text: i.value, done: false }); localStorage.setItem('mind_goals_v1', JSON.stringify(g)); renderGoals(); i.value = ''; };
 window.toggleGoal = (i) => { const g = JSON.parse(localStorage.getItem('mind_goals_v1')); g[i].done = !g[i].done; localStorage.setItem('mind_goals_v1', JSON.stringify(g)); renderGoals(); };
 window.deleteGoal = (i) => { const g = JSON.parse(localStorage.getItem('mind_goals_v1')); g.splice(i, 1); localStorage.setItem('mind_goals_v1', JSON.stringify(g)); renderGoals(); };
@@ -183,7 +267,7 @@ function getVal(id) { const e = getModalElement('#' + id); return e ? e.value : 
 function getModalElement(s) { const m = document.getElementById('modal-body'); return m ? m.querySelector(s) : document.querySelector(s); }
 function setModalHtml(id, h) { const e = getModalElement('#' + id); if (e) { e.innerHTML = h; e.classList.remove('hidden'); } }
 
-// Breathing Exercise
+// --- BREATHING EXERCISE ---
 let breathInterval;
 let isBreathing = false;
 
@@ -191,12 +275,10 @@ window.toggleBreathing = function () {
     const btn = document.getElementById('breath-btn');
     if (isBreathing) {
         stopBreathing();
-        btn.innerText = "ابدأ التمرين";
-        btn.style.background = "var(--primary)";
+        if (btn) { btn.innerText = "ابدأ التمرين"; btn.style.background = "var(--primary)"; }
     } else {
         startBreathing();
-        btn.innerText = "إيقاف";
-        btn.style.background = "#e74c3c";
+        if (btn) { btn.innerText = "إيقاف"; btn.style.background = "#e74c3c"; }
     }
 };
 
@@ -205,16 +287,14 @@ function startBreathing() {
     const container = document.querySelector('.circle-container');
     const text = document.getElementById('breath-text');
     const instruction = document.getElementById('breath-instruction');
+    if (!container || !text) return;
 
-    // Initial State
     text.innerText = "شهيق";
     instruction.innerText = "تنفس ببطء وعمق...";
     container.className = 'circle-container grow';
 
     breathAnimation();
-    breathInterval = setInterval(breathAnimation, 12000); // 4 in, 4 hold, 4 out = 12s cycle changed to: 4 in, 4 hold, 4 out logic needs careful timing.
-    // Let's do a simpler cycle: 4s Inhale, 4s Hold, 4s Exhale
-    // CSS animations are 4s.
+    breathInterval = setInterval(breathAnimation, 12000);
 }
 
 function breathAnimation() {
@@ -223,25 +303,24 @@ function breathAnimation() {
     const text = document.getElementById('breath-text');
     const instruction = document.getElementById('breath-instruction');
 
-    // Inhale (4s)
+    // Inhale
     text.innerText = "شهيق";
     instruction.innerText = "استنشق الهواء عبر أنفك...";
     container.className = 'circle-container grow';
 
     setTimeout(() => {
         if (!isBreathing) return;
-        // Hold (4s)
+        // Hold
         text.innerText = "احبس";
         instruction.innerText = "احتفظ بالهواء في صدرك...";
 
         setTimeout(() => {
             if (!isBreathing) return;
-            // Exhale (4s)
+            // Exhale
             text.innerText = "زفير";
             instruction.innerText = "أخرج الهواء ببطء من فمك...";
             container.className = 'circle-container shrink';
         }, 4000);
-
     }, 4000);
 }
 
@@ -251,7 +330,6 @@ function stopBreathing() {
     breathInterval = null;
     const container = document.querySelector('.circle-container');
     const text = document.getElementById('breath-text');
-
     if (container) container.className = 'circle-container';
     if (text) text.innerText = "جاهز؟";
 }
@@ -268,7 +346,7 @@ window.saveGratitude = function () {
 
     input.value = "";
     alert("تم الحفظ! شعور رائع! 💖");
-    viewGratitudeHistory(); // Refresh view if open
+    viewGratitudeHistory();
 };
 
 window.viewGratitudeHistory = function () {
@@ -290,19 +368,9 @@ window.viewGratitudeHistory = function () {
 };
 
 
-
-// --- GENERAL AI CHAT (ChatGPT-like) ---
+// --- AI CHAT LOGIC (Gemini) ---
 const GEMINI_API_KEY = "AIzaSyCO3_GJso855AiYzwVpkG5oMOUi82ED8cs";
-
-// State for Chat
-let chatHistory = [];
 let currentImageBase64 = null;
-
-// Hook into openTool 
-const originalOpenTool = window.openTool;
-window.openTool = function (name) {
-    if (originalOpenTool) originalOpenTool(name);
-};
 
 window.handleImageUpload = function (input) {
     const file = input.files[0];
@@ -335,14 +403,12 @@ window.sendChatMessage = async function () {
     const input = document.getElementById('chat-input');
     const text = input.value.trim();
 
-    // Don't send empty unless there's an image
     if (!text && !currentImageBase64) return;
 
-    // 1. Show User Message
     appendMessage({ role: 'user', text: text, image: currentImageBase64 ? document.getElementById('preview-img').src : null });
     input.value = "";
 
-    // 2. Prepare Payload
+    // Prepare data
     const parts = [];
     if (text) parts.push({ text: text });
     if (currentImageBase64) {
@@ -354,24 +420,17 @@ window.sendChatMessage = async function () {
         });
     }
 
-    // Reset Image after sending
     clearImage();
-
-    // 3. Show Loading Bubble
     const loadingId = appendLoading();
 
     try {
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: parts }]
-            })
+            body: JSON.stringify({ contents: [{ parts: parts }] })
         });
 
         const data = await response.json();
-
-        // Remove Loading div if it exists
         const loadDiv = document.getElementById(loadingId);
         if (loadDiv) loadDiv.remove();
 
@@ -385,7 +444,6 @@ window.sendChatMessage = async function () {
         const loadDiv = document.getElementById(loadingId);
         if (loadDiv) loadDiv.remove();
         appendMessage({ role: 'model', text: "🚫 عذراً، حدث خطأ: " + e.message });
-        console.error("Gemini Error:", e);
     }
 };
 
@@ -397,11 +455,9 @@ function appendMessage(msg) {
     div.className = `message ${msg.role === 'user' ? 'user-message' : 'ai-message'}`;
 
     let avatarInfo = msg.role === 'user' ? '<div class="msg-avatar">👤</div>' : '<div class="msg-avatar">🤖</div>';
-
     let contentHtml = "";
     if (msg.image) contentHtml += `<img src="${msg.image}" style="max-width:200px; display:block; margin-bottom:10px; border-radius:8px;">`;
 
-    // Use marked if available, else text
     if (msg.role === 'model') {
         if (typeof marked !== 'undefined') {
             try { contentHtml += marked.parse(msg.text); } catch (err) { contentHtml += msg.text; }
@@ -409,11 +465,8 @@ function appendMessage(msg) {
             contentHtml += msg.text.replace(/\n/g, '<br>');
         }
     } else {
-        contentHtml += msg.text; // User text is simple
+        contentHtml += msg.text;
     }
-
-    // Structure depends on CSS, here we follow the ChatGPT style structure
-    if (msg.role === 'ai-message') { /* handled by class */ }
 
     div.innerHTML = `${avatarInfo}<div class="msg-content">${contentHtml}</div>`;
     chat.appendChild(div);
@@ -431,4 +484,3 @@ function appendLoading() {
     chat.scrollTop = chat.scrollHeight;
     return id;
 }
-```
