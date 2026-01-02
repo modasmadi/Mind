@@ -1325,3 +1325,236 @@ textarea:focus {
         opacity: 0.5;
     }
 }
+
+/* ==========================================
+   Enhanced Code Blocks - v4.0
+   ========================================== */
+.code-block-wrapper {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin: 15px 0;
+    overflow: hidden;
+    direction: ltr;
+}
+
+.code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 15px;
+    background: var(--bg-tertiary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.code-language {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.code-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.code-btn {
+    background: transparent;
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.code-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--accent);
+    color: var(--text-primary);
+}
+
+.code-btn.copied {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+}
+
+.code-btn.explain-btn:hover {
+    border-color: #f59e0b;
+}
+
+.code-content {
+    margin: 0;
+    padding: 15px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    overflow-x: auto;
+}
+
+.code-content code {
+    background: transparent;
+    padding: 0;
+    display: block;
+    font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.line-number {
+    display: inline-block;
+    width: 35px;
+    color: var(--text-muted);
+    text-align: right;
+    padding-right: 15px;
+    margin-right: 10px;
+    border-right: 1px solid var(--border-color);
+    user-select: none;
+    font-size: 0.8rem;
+}
+
+/* ==========================================
+   Mode Selector
+   ========================================== */
+.mode-selector {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    padding: 8px 0;
+}
+
+#mode-indicator {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.mode-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+.mode-btn {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.mode-btn:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-light);
+    transform: scale(1.05);
+}
+
+.mode-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 2px 10px rgba(16, 163, 127, 0.3);
+}
+
+/* ==========================================
+   Voice Button Enhancement
+   ========================================== */
+.voice-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    font-size: 1.1rem;
+}
+
+.voice-btn:hover {
+    background: var(--bg-hover);
+    color: var(--accent);
+}
+
+.voice-btn.recording {
+    color: var(--danger);
+    animation: pulse 1s infinite;
+}
+
+/* ==========================================
+   History Date Badge
+   ========================================== */
+.history-date {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    position: absolute;
+    left: 35px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* ==========================================
+   Message Time
+   ========================================== */
+.message-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* ==========================================
+   Mobile Responsive Updates
+   ========================================== */
+@media (max-width: 768px) {
+    .code-header {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .code-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .mode-selector {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .mode-buttons {
+        flex-wrap: wrap;
+    }
+    
+    .mode-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 1rem;
+    }
+    
+    .line-number {
+        width: 25px;
+        padding-right: 8px;
+        margin-right: 8px;
+    }
+}

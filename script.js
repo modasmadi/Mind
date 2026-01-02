@@ -14,10 +14,65 @@ const CONFIG = {
     MAX_TOKENS: 4096,
     STORAGE_KEY: "mind_ai_chats_v3",
     CURRENT_CHAT_KEY: "mind_ai_current_v3",
+    MEMORY_KEY: "mind_ai_memory_v1",
     CHATS_PER_PAGE: 10,
     MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
     AUTO_SAVE_INTERVAL: 30000, // 30 ثانية
     ENABLE_VOICE: true
+};
+
+// AI Modes - أوضاع الذكاء الاصطناعي
+const AI_MODES = {
+    default: {
+        name: 'عام',
+        icon: '🧠',
+        prompt: ''
+    },
+    developer: {
+        name: 'مطوّر',
+        icon: '💻',
+        prompt: `أنت الآن في وضع المطوّر المتخصص. 
+- ركز على كتابة أكواد نظيفة ومنظمة
+- قدم شرح للكود وأفضل الممارسات
+- استخدم التعليقات في الكود
+- اقترح تحسينات وحلول بديلة`
+    },
+    writer: {
+        name: 'كاتب',
+        icon: '✍️',
+        prompt: `أنت الآن في وضع الكاتب الإبداعي.
+- اكتب بأسلوب أدبي جميل
+- استخدم تعبيرات بلاغية
+- ركز على الجودة اللغوية
+- قدم اقتراحات لتحسين النصوص`
+    },
+    teacher: {
+        name: 'معلّم',
+        icon: '📚',
+        prompt: `أنت الآن في وضع المعلّم.
+- اشرح بأسلوب بسيط وواضح
+- استخدم أمثلة عملية
+- قسّم المعلومات لنقاط
+- تأكد من فهم المتعلم`
+    },
+    analyst: {
+        name: 'محلل',
+        icon: '🧮',
+        prompt: `أنت الآن في وضع المحلل.
+- حلل المشاكل بعمق
+- قدم حقائق وأرقام
+- استخدم المنطق والتفكير النقدي
+- قدم توصيات مبنية على التحليل`
+    }
+};
+
+// Slash Commands - الأوامر السريعة
+const SLASH_COMMANDS = {
+    '/كود': { mode: 'developer', description: 'وضع البرمجة' },
+    '/ترجم': { action: 'translate', description: 'ترجمة نص' },
+    '/لخص': { action: 'summarize', description: 'تلخيص نص' },
+    '/اشرح': { action: 'explain', description: 'شرح تفصيلي' },
+    '/صورة': { action: 'image', description: 'تحليل صورة' }
 };
 
 // System prompt for the AI
@@ -60,6 +115,12 @@ let state = {
     voiceRecognition: null,
     isRecording: false,
     isOnline: navigator.onLine,
+    currentMode: 'default',
+    memory: {
+        userName: null,
+        preferences: {},
+        facts: []
+    },
     settings: {
         darkMode: true,
         autoSave: true,
@@ -984,9 +1045,9 @@ async function sendMessage() {
 }
 
 async function sendToGroq(chatMessages, currentMessage) {
-    // Build messages array for API
+    // Build messages array for API with dynamic system prompt
     const messages = [
-        { role: 'system', content: SYSTEM_PROMPT }
+        { role: 'system', content: getCurrentSystemPrompt() }
     ];
 
     // Add chat history (last 20 messages)
@@ -1036,7 +1097,7 @@ async function sendToGemini(text, imageBase64) {
             body: JSON.stringify({
                 contents: [{
                     parts: [
-                        { text: `${SYSTEM_PROMPT}\n\nالمستخدم: ${text}` },
+                        { text: `${getCurrentSystemPrompt()}\n\nالمستخدم: ${text}` },
                         { inline_data: { mime_type: 'image/jpeg', data: imageBase64 } }
                     ]
                 }]
@@ -1294,7 +1355,51 @@ function escapeHtml(text) {
 function parseMarkdown(text) {
     if (typeof marked !== 'undefined') {
         try {
-            return marked.parse(text);
+            // Configure marked for better code highlighting
+            marked.setOptions({
+                breaks: true,
+                gfm: true
+            });
+
+            let html = marked.parse(text);
+
+            // Add copy button and line numbers to code blocks
+            let codeBlockId = 0;
+            html = html.replace(/<pre><code(.*?)>([\s\S]*?)<\/code><\/pre>/gi, (match, attrs, code) => {
+                codeBlockId++;
+                const language = attrs.match(/class="language-(\w+)"/)?.[1] || 'code';
+                const decodedCode = code
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&amp;/g, '&')
+                    .replace(/&quot;/g, '"');
+
+                // Add line numbers
+                const lines = code.split('\n');
+                const numberedCode = lines.map((line, i) =>
+                    `<span class="line-number">${i + 1}</span>${line}`
+                ).join('\n');
+
+                return `
+                    <div class="code-block-wrapper">
+                        <div class="code-header">
+                            <span class="code-language">${language}</span>
+                            <div class="code-actions">
+                                <button class="code-btn explain-btn" onclick="explainCode(\`${decodedCode.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="اشرح الكود">
+                                    <i class="fa-solid fa-lightbulb"></i>
+                                </button>
+                                <button class="code-btn copy-btn" onclick="copyCode(this, \`${decodedCode.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`)" title="نسخ الكود">
+                                    <i class="fa-solid fa-copy"></i>
+                                    <span>نسخ</span>
+                                </button>
+                            </div>
+                        </div>
+                        <pre class="code-content"><code${attrs}>${numberedCode}</code></pre>
+                    </div>
+                `;
+            });
+
+            return html;
         } catch (e) {
             return text.replace(/\n/g, '<br>');
         }
@@ -1370,3 +1475,196 @@ window.clearFile = clearFile;
 window.handleKeyDown = handleKeyDown;
 window.autoResize = autoResize;
 window.toggleVoiceRecording = toggleVoiceRecording;
+
+// ==========================================
+// Code Features - ميزات الأكواد
+// ==========================================
+async function copyCode(button, code) {
+    try {
+        await navigator.clipboard.writeText(code);
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fa-solid fa-check"></i><span>تم!</span>';
+        button.classList.add('copied');
+
+        setTimeout(() => {
+            button.innerHTML = originalHTML;
+            button.classList.remove('copied');
+        }, 2000);
+
+        showSuccess('تم نسخ الكود!');
+    } catch (err) {
+        showError('فشل النسخ: ' + err.message);
+    }
+}
+
+async function explainCode(code) {
+    const input = document.getElementById('message-input');
+    if (input) {
+        input.value = `اشرح لي هذا الكود سطر بسطر:\n\`\`\`\n${code}\n\`\`\``;
+        updateSendButton();
+        autoResize(input);
+        sendMessage();
+    }
+}
+
+window.copyCode = copyCode;
+window.explainCode = explainCode;
+
+// ==========================================
+// AI Modes - أوضاع الذكاء الاصطناعي
+// ==========================================
+function switchMode(modeName) {
+    if (AI_MODES[modeName]) {
+        state.currentMode = modeName;
+        updateModeUI();
+        showSuccess(`تم التبديل لوضع ${AI_MODES[modeName].name} ${AI_MODES[modeName].icon}`);
+        saveSettings();
+    }
+}
+
+function updateModeUI() {
+    const modeIndicator = document.getElementById('mode-indicator');
+    if (modeIndicator) {
+        const mode = AI_MODES[state.currentMode];
+        modeIndicator.innerHTML = `${mode.icon} ${mode.name}`;
+    }
+}
+
+function getCurrentSystemPrompt() {
+    let prompt = SYSTEM_PROMPT;
+
+    // Add mode-specific prompt
+    const modePrompt = AI_MODES[state.currentMode]?.prompt;
+    if (modePrompt) {
+        prompt += '\n\n' + modePrompt;
+    }
+
+    // Add memory context
+    if (state.memory.userName) {
+        prompt += `\n\nاسم المستخدم: ${state.memory.userName}`;
+    }
+    if (state.memory.facts.length > 0) {
+        prompt += `\n\nمعلومات عن المستخدم:\n- ${state.memory.facts.slice(-10).join('\n- ')}`;
+    }
+
+    return prompt;
+}
+
+window.switchMode = switchMode;
+
+// ==========================================
+// Memory System - نظام الذاكرة الذكية
+// ==========================================
+function saveMemory() {
+    try {
+        localStorage.setItem(CONFIG.MEMORY_KEY, JSON.stringify(state.memory));
+    } catch (e) {
+        console.error('Error saving memory:', e);
+    }
+}
+
+function loadMemory() {
+    try {
+        const saved = localStorage.getItem(CONFIG.MEMORY_KEY);
+        if (saved) {
+            state.memory = { ...state.memory, ...JSON.parse(saved) };
+        }
+    } catch (e) {
+        console.error('Error loading memory:', e);
+    }
+}
+
+function addToMemory(fact) {
+    if (fact && !state.memory.facts.includes(fact)) {
+        state.memory.facts.push(fact);
+        if (state.memory.facts.length > 50) {
+            state.memory.facts = state.memory.facts.slice(-50);
+        }
+        saveMemory();
+    }
+}
+
+function setUserName(name) {
+    state.memory.userName = name;
+    saveMemory();
+    showSuccess(`مرحباً ${name}! سأتذكر اسمك.`);
+}
+
+function clearMemory() {
+    if (confirm('هل تريد مسح جميع الذكريات المحفوظة؟')) {
+        state.memory = { userName: null, preferences: {}, facts: [] };
+        saveMemory();
+        showSuccess('تم مسح الذاكرة');
+    }
+}
+
+window.setUserName = setUserName;
+window.clearMemory = clearMemory;
+
+// ==========================================
+// Slash Commands - الأوامر السريعة
+// ==========================================
+function processSlashCommand(text) {
+    const trimmed = text.trim();
+
+    for (const [command, config] of Object.entries(SLASH_COMMANDS)) {
+        if (trimmed.startsWith(command)) {
+            const content = trimmed.slice(command.length).trim();
+
+            if (config.mode) {
+                switchMode(config.mode);
+                return content || null;
+            }
+
+            if (config.action === 'translate') {
+                return `ترجم النص التالي للإنجليزية:\n${content}`;
+            }
+            if (config.action === 'summarize') {
+                return `لخص النص التالي بشكل مختصر:\n${content}`;
+            }
+            if (config.action === 'explain') {
+                return `اشرح بالتفصيل:\n${content}`;
+            }
+        }
+    }
+
+    return text;
+}
+
+function showSlashCommandsHelp() {
+    let helpText = '**الأوامر السريعة المتاحة:**\n\n';
+    for (const [command, config] of Object.entries(SLASH_COMMANDS)) {
+        helpText += `\`${command}\` - ${config.description}\n`;
+    }
+    return helpText;
+}
+
+// ==========================================
+// Mode Selector UI - واجهة اختيار الوضع
+// ==========================================
+function renderModeSelector() {
+    const container = document.querySelector('.input-footer');
+    if (!container || document.getElementById('mode-selector')) return;
+
+    const modesHTML = Object.entries(AI_MODES).map(([key, mode]) =>
+        `<button class="mode-btn ${state.currentMode === key ? 'active' : ''}" 
+                 onclick="switchMode('${key}')" title="${mode.name}">
+            ${mode.icon}
+        </button>`
+    ).join('');
+
+    const selectorHTML = `
+        <div class="mode-selector" id="mode-selector">
+            <span id="mode-indicator">${AI_MODES[state.currentMode].icon} ${AI_MODES[state.currentMode].name}</span>
+            <div class="mode-buttons">${modesHTML}</div>
+        </div>
+    `;
+
+    container.insertAdjacentHTML('afterbegin', selectorHTML);
+}
+
+// Initialize memory on load
+document.addEventListener('DOMContentLoaded', () => {
+    loadMemory();
+    setTimeout(renderModeSelector, 500);
+});
