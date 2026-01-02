@@ -220,6 +220,7 @@ body.light-mode .bottom-nav {
     background: #ffffff;
 }
 
+/* Modal */
 .modal {
     position: fixed;
     top: 0;
@@ -299,6 +300,14 @@ textarea {
     margin-top: 15px;
 }
 
+.small-btn {
+    padding: 12px;
+    font-size: 1rem;
+    width: auto;
+    min-width: 120px;
+}
+
+/* Daily Dashboard */
 .daily-quote-box {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border-radius: 20px;
@@ -334,42 +343,6 @@ textarea {
     font-style: italic;
 }
 
-.breathing-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 50px 0;
-}
-
-.breath-circle {
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, var(--secondary) 0%, transparent 70%);
-    border: 3px solid var(--secondary);
-    border-radius: 50%;
-    box-shadow: 0 0 30px rgba(52, 152, 219, 0.3);
-    transition: all 4s ease-in-out;
-    transform: scale(1);
-    margin-bottom: 30px;
-}
-
-.breath-circle.inhale {
-    transform: scale(1.5);
-    background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
-    border-color: var(--primary);
-    box-shadow: 0 0 50px rgba(142, 68, 173, 0.5);
-}
-
-.breath-text {
-    font-size: 2rem;
-    font-weight: 900;
-    color: var(--text-main);
-    margin-bottom: 20px;
-    min-height: 50px;
-}
-
-/* Dashboard Cards (Habits/Water) */
 .dashboard-card {
     background: var(--glass);
     border: 1px solid var(--border);
@@ -411,8 +384,13 @@ textarea {
     cursor: pointer;
 }
 
-.habit-item:last-child {
-    border: none;
+.habit-item.done {
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.habit-item.done i {
+    color: var(--success);
 }
 
 .habit-item i {
@@ -421,20 +399,25 @@ textarea {
     color: var(--text-sec);
 }
 
-.habit-item.done i {
-    color: var(--success);
+/* Gym */
+.gym-panel {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
 }
 
-.habit-item.done span {
-    text-decoration: line-through;
-    opacity: 0.7;
+.result-box {
+    margin-top: 15px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    animation: fadeIn 0.3s ease;
 }
 
-.habit-item span {
-    font-size: 1.1rem;
-}
-
-/* Gratitude Journal */
+/* Gratitude */
 .gratitude-box {
     margin-bottom: 30px;
 }
@@ -468,43 +451,7 @@ textarea {
     margin-bottom: 5px;
 }
 
-.journal-entry li {
-    margin-bottom: 3px;
-    font-size: 0.95rem;
-}
-
-.goal-item {
-    background: var(--glass);
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    border: 1px solid var(--border);
-}
-
-.goal-item.done {
-    text-decoration: line-through;
-    opacity: 0.6;
-    border-right: 5px solid var(--success);
-}
-
-.add-goal-box {
-    display: flex;
-    gap: 10px;
-}
-
-.plus-btn {
-    width: 60px;
-    background: var(--success);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 1.5rem;
-    cursor: pointer;
-}
-
-/* iOS Calc & Misc */
+/* iOS Calc */
 .ios-calc-wrapper {
     background: #000000;
     border-radius: 40px;
@@ -579,6 +526,7 @@ button.span-2 {
     padding-left: 30px;
 }
 
+/* Focus */
 .focus-display {
     font-size: 4.5rem;
     font-weight: 900;
@@ -627,16 +575,33 @@ button.span-2 {
     animation: pulse 2s infinite;
 }
 
-@keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(142, 68, 173, 0.7);
-    }
+.goal-item {
+    background: var(--glass);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border);
+}
 
-    70% {
-        box-shadow: 0 0 0 10px rgba(142, 68, 173, 0);
-    }
+.goal-item.done {
+    text-decoration: line-through;
+    opacity: 0.6;
+    border-right: 5px solid var(--success);
+}
 
-    100% {
-        box-shadow: 0 0 0 0 rgba(142, 68, 173, 0);
-    }
+.add-goal-box {
+    display: flex;
+    gap: 10px;
+}
+
+.plus-btn {
+    width: 60px;
+    background: var(--success);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.5rem;
+    cursor: pointer;
 }

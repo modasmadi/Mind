@@ -31,53 +31,50 @@
 
         <div id="pages-container">
 
-            <!-- HOME -->
-            <div id="page-home" class="page active-page">
+            <!-- PAGE 1: DASHBOARD (Formerly Goals) -->
+            <div id="page-dashboard" class="page active-page">
+                <!-- Daily Quote -->
                 <div class="daily-quote-box">
                     <div class="quote-header"><i class="fa-solid fa-quote-right"></i> حكمة اليوم</div>
-                    <p id="daily-quote-text" class="quote-text">جارِ تحميل الحكمة...</p>
+                    <p id="daily-quote-text" class="quote-text">جارِ التحميل...</p>
                 </div>
 
-                <h2 class="section-title">✨ اكتشف المجهول</h2>
-                <div class="grid-menu">
-                    <div class="glass-card" onclick="openTool('love')"><i class="fa-solid fa-heart icon"
-                            style="color:#ff7675;"></i>
-                        <h3>مقياس الحب</h3>
+                <h2 class="section-title">📅 لوحتي اليومية</h2>
+
+                <!-- Water Tracker -->
+                <div class="dashboard-card">
+                    <h3>💧 تذكير الماء (<span id="water-count">0</span>/8)</h3>
+                    <div class="water-grid" id="water-grid"></div>
+                </div>
+
+                <!-- Habits Tracker -->
+                <div class="dashboard-card">
+                    <h3>✨ عاداتي اليومية</h3>
+                    <ul id="habits-list" class="habits-list"></ul>
+                </div>
+
+                <!-- Tasks -->
+                <h3 style="margin-top:20px; color:var(--text-sec)">📝 المهام</h3>
+                <div class="goals-container">
+                    <div class="add-goal-box">
+                        <input type="text" id="new-goal-text" placeholder="مهمة جديدة...">
+                        <button onclick="addGoal()" class="plus-btn"><i class="fa-solid fa-plus"></i></button>
                     </div>
-                    <div class="glass-card" onclick="openTool('money')"><i class="fa-solid fa-sack-dollar icon"
-                            style="color:#fdcb6e;"></i>
-                        <h3>الثروة</h3>
-                    </div>
-                    <div class="glass-card" onclick="openTool('luck')"><i class="fa-solid fa-clover icon"
-                            style="color:#00b894;"></i>
-                        <h3>رسالة الحظ</h3>
-                    </div>
-                    <div class="glass-card" onclick="openTool('animal')"><i class="fa-solid fa-paw icon"
-                            style="color:#e17055;"></i>
-                        <h3>الحيوان الروحي</h3>
-                    </div>
-                    <div class="glass-card" onclick="openTool('baby')"><i class="fa-solid fa-baby icon"
-                            style="color:#74b9ff;"></i>
-                        <h3>اسم طفلي</h3>
+                    <ul id="goals-list"></ul>
+                    <div id="empty-state" class="empty-goals">
+                        <p>قائمتك فارغة!</p>
                     </div>
                 </div>
             </div>
 
-            <!-- MIND -->
+            <!-- PAGE 2: MIND (Cleaned) -->
             <div id="page-mind" class="page">
                 <h2 class="section-title">🧠 العقل والنفس</h2>
                 <div class="grid-menu">
-                    <div class="glass-card" onclick="openTool('breathing')"><i class="fa-solid fa-lungs icon"
-                            style="color:#74b9ff;"></i>
-                        <h3>تمرين التنفس</h3>
-                    </div>
-
-                    <!-- New Gratitude Journal -->
                     <div class="glass-card" onclick="openTool('gratitude')"><i class="fa-solid fa-book-heart icon"
                             style="color:#fd79a8;"></i>
                         <h3>مذكرة الامتنان</h3>
                     </div>
-
                     <div class="glass-card" onclick="openTool('dream')"><i class="fa-solid fa-moon icon"
                             style="color:#a29bfe;"></i>
                         <h3>مفسر الأحلام</h3>
@@ -93,7 +90,50 @@
                 </div>
             </div>
 
-            <!-- TOOLS -->
+            <!-- PAGE 3: GYM (Expanded) -->
+            <div id="page-gym" class="page">
+                <h2 class="section-title">� النادي واللياقة</h2>
+
+                <!-- Standard Panels -->
+                <div class="gym-panel">
+                    <h3>⚖️ حساب كتلة الجسم (BMI)</h3>
+                    <div class="input-group">
+                        <input type="number" id="weight" placeholder="الوزن (kg)">
+                        <input type="number" id="height" placeholder="الطول (cm)">
+                    </div>
+                    <button class="action-btn small-btn" onclick="calcBMI()">احسب</button>
+                    <div id="bmi-result" class="result-box hidden"></div>
+                </div>
+
+                <!-- Workout Generator -->
+                <div class="gym-panel">
+                    <h3>🏋️‍♂️ جدول تمرين (AI)</h3>
+                    <select id="muscle-group">
+                        <option value="chest">صدر (Chest)</option>
+                        <option value="back">ظهر (Back)</option>
+                        <option value="legs">أرجل (Legs)</option>
+                        <option value="shoulders">أكتاف (Shoulders)</option>
+                        <option value="arms">أذرع (Arms)</option>
+                    </select>
+                    <button class="action-btn small-btn" onclick="getWorkout()">اقتراح جدول</button>
+                    <div id="workout-result" class="result-box hidden"
+                        style="text-align: right; white-space: pre-line;"></div>
+                </div>
+
+                <!-- New Tools Cards -->
+                <div class="grid-menu" style="margin-top: 20px;">
+                    <div class="glass-card" onclick="openTool('tdee')"><i class="fa-solid fa-fire-burner icon"
+                            style="color:#e67e22;"></i>
+                        <h3>حاسبة السعرات</h3>
+                    </div>
+                    <div class="glass-card" onclick="openTool('1rm')"><i class="fa-solid fa-weight-hanging icon"
+                            style="color:#e74c3c;"></i>
+                        <h3>أقصى وزن (1RM)</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE 4: TOOLS -->
             <div id="page-tools" class="page">
                 <h2 class="section-title">🛠️ أدوات ذكية</h2>
                 <div class="grid-menu">
@@ -112,96 +152,73 @@
                 </div>
             </div>
 
-            <!-- GYM -->
-            <div id="page-gym" class="page">
-                <h2 class="section-title">💪 النادي واللياقة</h2>
-                <div class="gym-panel">
-                    <h3>⚖️ حساب كتلة الجسم (BMI)</h3>
-                    <div class="input-group">
-                        <input type="number" id="weight" placeholder="الوزن (kg)">
-                        <input type="number" id="height" placeholder="الطول (cm)">
-                    </div>
-                    <button class="action-btn small-btn" onclick="calcBMI()">احسب</button>
-                    <div id="bmi-result" class="result-box hidden"></div>
-                </div>
-                <div class="gym-panel">
-                    <h3>🏋️‍♂️ جدول تمرين مقترح</h3>
-                    <select id="muscle-group">
-                        <option value="chest">صدر (Chest)</option>
-                        <option value="back">ظهر (Back)</option>
-                        <option value="legs">أرجل (Legs)</option>
-                        <option value="arms">أذرع (Arms)</option>
-                    </select>
-                    <button class="action-btn small-btn" onclick="getWorkout()">اعطني الجدول</button>
-                    <div id="workout-result" class="result-box hidden" style="text-align: right;"></div>
-                </div>
-            </div>
-
-            <!-- GOALS (Upgraded to DAILY DASHBOARD) -->
-            <div id="page-goals" class="page">
-                <h2 class="section-title">📅 يومي (Dashboard 24h)</h2>
-
-                <!-- Water Tracker -->
-                <div class="dashboard-card">
-                    <h3>💧 تذكير الماء (<span id="water-count">0</span>/8)</h3>
-                    <div class="water-grid" id="water-grid">
-                        <!-- Cups added by JS -->
-                    </div>
-                </div>
-
-                <!-- Habits Tracker -->
-                <div class="dashboard-card">
-                    <h3>✨ عاداتي اليومية</h3>
-                    <ul id="habits-list" class="habits-list">
-                        <!-- Habits added by JS -->
-                    </ul>
-                </div>
-
-                <!-- Original To-Do -->
-                <h3 style="margin-top:20px; color:var(--text-sec)">📝 مهام أخرى</h3>
-                <div class="goals-container">
-                    <div class="add-goal-box">
-                        <input type="text" id="new-goal-text" placeholder="مهمة جديدة...">
-                        <button onclick="addGoal()" class="plus-btn"><i class="fa-solid fa-plus"></i></button>
-                    </div>
-                    <ul id="goals-list"></ul>
-                    <div id="empty-state" class="empty-goals">
-                        <p>قائمتك فارغة!</p>
-                    </div>
-                </div>
-            </div>
         </div>
 
+        <!-- NAVIGATION -->
         <nav class="bottom-nav">
-            <div class="nav-item active" onclick="switchPage('home')"><i
-                    class="fa-solid fa-wand-magic-sparkles"></i><span>ترفيه</span></div>
+            <div class="nav-item active" onclick="switchPage('dashboard')"><i
+                    class="fa-solid fa-house"></i><span>يومي</span></div>
             <div class="nav-item" onclick="switchPage('mind')"><i class="fa-solid fa-brain"></i><span>النفس</span></div>
-            <div class="nav-item" onclick="switchPage('goals')">
-                <div class="fab-circle"><i class="fa-solid fa-calendar-check"></i></div>
-            </div> <!-- Changed Icon -->
-            <div class="nav-item" onclick="switchPage('gym')"><i class="fa-solid fa-dumbbell"></i><span>الجيم</span>
+            <!-- Center Button -->
+            <div class="nav-item" onclick="switchPage('gym')">
+                <div class="fab-circle"><i class="fa-solid fa-dumbbell"></i></div>
             </div>
+
             <div class="nav-item" onclick="switchPage('tools')"><i class="fa-solid fa-toolbox"></i><span>أدوات</span>
             </div>
         </nav>
 
+        <!-- MODAL -->
         <div id="tool-modal" class="modal hidden">
             <div class="modal-content">
                 <button class="close-modal" onclick="closeTool()">✕</button>
                 <div id="modal-body"></div>
             </div>
         </div>
-
         <div id="global-loading" class="hidden overlay-loading">
             <div class="spinner"></div>
-            <p>جارِ التحليل...</p>
+            <p>جارِ المعالجة...</p>
         </div>
     </div>
 
     <!-- TEMPLATES -->
     <div id="templates" style="display: none !important;">
 
-        <!-- Gratitude Journal -->
+        <!-- TDEE Calculator -->
+        <div id="tpl-tdee">
+            <h2>🔥 حاسبة السعرات (TDEE)</h2>
+            <div class="input-group">
+                <input type="number" id="tdee-weight" placeholder="الوزن (kg)">
+                <input type="number" id="tdee-height" placeholder="الطول (cm)">
+                <input type="number" id="tdee-age" placeholder="العمر">
+                <select id="tdee-gender">
+                    <option value="male">ذكر</option>
+                    <option value="female">أنثى</option>
+                </select>
+                <select id="tdee-activity">
+                    <option value="1.2">خامل (لا رياضة)</option>
+                    <option value="1.375">نشاط خفيف (1-3 أيام)</option>
+                    <option value="1.55">نشاط متوسط (3-5 أيام)</option>
+                    <option value="1.725">نشاط عالٍ (6-7 أيام)</option>
+                </select>
+            </div>
+            <button class="action-btn" onclick="calcTDEE()">احسب احتياجي</button>
+            <div id="tdee-result" class="result-box hidden"></div>
+        </div>
+
+        <!-- 1RM Calculator -->
+        <div id="tpl-1rm">
+            <h2>🏋️‍♂️ أقصى وزن (1RM)</h2>
+            <p style="color:#aaa; font-size:0.9rem">أدخل وزناً رفعته وكم تكرار قمت به.</p>
+            <div class="input-group">
+                <input type="number" id="rm-weight" placeholder="الوزن المرفوع (kg)">
+                <input type="number" id="rm-reps" placeholder="عدد التكرارات">
+            </div>
+            <button class="action-btn" onclick="calcOneRepMax()">احسب قوتي</button>
+            <div id="rm-result" class="result-box hidden"></div>
+        </div>
+
+        <!-- Gratitude -->
         <div id="tpl-gratitude">
             <h2>📔 مذكرة الامتنان</h2>
             <p style="color:var(--text-sec); font-size:0.9rem;">اكتب 3 أشياء أسعدتك اليوم:</p>
@@ -209,7 +226,7 @@
                 <input type="text" class="gratitude-input" placeholder="1. ..." id="grat-1">
                 <input type="text" class="gratitude-input" placeholder="2. ..." id="grat-2">
                 <input type="text" class="gratitude-input" placeholder="3. ..." id="grat-3">
-                <button class="action-btn" onclick="saveGratitude()">حفظ في ذكرياتي</button>
+                <button class="action-btn" onclick="saveGratitude()">حفظ</button>
             </div>
             <div class="journal-history">
                 <h3>📜 ذكريات سابقة</h3>
@@ -217,15 +234,28 @@
             </div>
         </div>
 
-        <!-- Previous Templates -->
-        <div id="tpl-breathing">
-            <h2>🌬️ تمرين التنفس</h2>
-            <div class="breathing-container">
-                <div id="breath-circle" class="breath-circle"></div>
-                <h2 id="breath-text" class="breath-text">جاهز؟</h2><button id="breath-btn" class="action-btn"
-                    onclick="toggleBreathing()">ابدأ التمرين</button>
-            </div>
+        <!-- Dreams -->
+        <div id="tpl-dream">
+            <h2>� الأحلام</h2><textarea id="dreamInput" placeholder="حلمت..."></textarea><button class="action-btn"
+                onclick="interpretDream()">تفسير</button>
+            <div id="dream-result" class="result-box hidden"></div>
         </div>
+
+        <!-- Personality -->
+        <div id="tpl-personality">
+            <h2>🧠 الشخصية</h2><input type="text" id="p-name" placeholder="الاسم"><button class="action-btn"
+                onclick="analyzePersonality()">تحليل</button>
+            <div id="personality-result" class="result-box hidden"></div>
+        </div>
+
+        <!-- Decision -->
+        <div id="tpl-decision">
+            <h2>⚖️ القرار</h2><textarea id="decision-input" placeholder="محتار؟"></textarea><button class="action-btn"
+                onclick="makeDecision()">احكم</button>
+            <div id="decision-result" class="result-box hidden"></div>
+        </div>
+
+        <!-- Tools -->
         <div id="tpl-calculator">
             <div class="ios-calc-wrapper" dir="ltr">
                 <div class="ios-calc-container">
@@ -272,51 +302,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div id="tpl-love">
-            <h2>❤️ الحب</h2><input type="text" id="name1" placeholder="اسمك"><input type="text" id="name2"
-                placeholder="الشريك"><button class="action-btn" onclick="calculateLove()">احسب</button>
-            <div id="love-result" class="result-box hidden"></div>
-        </div>
-        <div id="tpl-money">
-            <h2>💰 الثروة</h2><input type="text" id="money-name" placeholder="اسمك"><button class="action-btn"
-                onclick="predictMoney()">كشف</button>
-            <div id="money-result" class="result-box hidden"></div>
-        </div>
-        <div id="tpl-luck">
-            <h2>🍀 الحظ</h2>
-            <div class="crystal-ball-wrapper" onclick="getLuck()">
-                <div class="crystal-ball-lg"></div>
-            </div>
-            <p>اضغط الكرة</p>
-            <div id="luck-result" class="result-box hidden"></div>
-        </div>
-        <div id="tpl-dream">
-            <h2>🌙 الأحلام</h2><textarea id="dreamInput" placeholder="حلمت..."></textarea><button class="action-btn"
-                onclick="interpretDream()">تفسير</button>
-            <div id="dream-result" class="result-box hidden"></div>
-        </div>
-        <div id="tpl-personality">
-            <h2>🧠 الشخصية</h2><input type="text" id="p-name" placeholder="الاسم"><button class="action-btn"
-                onclick="analyzePersonality()">تحليل</button>
-            <div id="personality-result" class="result-box hidden"></div>
-        </div>
-        <div id="tpl-decision">
-            <h2>⚖️ القرار</h2><textarea id="decision-input" placeholder="محتار؟"></textarea><button class="action-btn"
-                onclick="makeDecision()">احكم</button>
-            <div id="decision-result" class="result-box hidden"></div>
-        </div>
-        <div id="tpl-baby">
-            <h2>👶 طفلي</h2><select id="baby-gender">
-                <option value="boy">ولد</option>
-                <option value="girl">بنت</option>
-            </select><button class="action-btn" onclick="suggestBabyName()">اقتراح</button>
-            <div id="baby-result" class="result-box hidden"></div>
-        </div>
-        <div id="tpl-animal">
-            <h2>🦁 الحيوان</h2><input type="text" id="animal-name" placeholder="اسمك"><button class="action-btn"
-                onclick="findSpiritAnimal()">اكتشف</button>
-            <div id="animal-result" class="result-box hidden"></div>
         </div>
         <div id="tpl-stopwatch">
             <h2>⏱️ ساعة الإيقاف</h2>
