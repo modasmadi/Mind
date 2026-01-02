@@ -7,14 +7,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mind AI | مساعدك الشخصي</title>
-    <meta name="description" content="تطبيقك اليومي الشامل: تحليل شخصية، تنظيم أهداف، أدوات ذكية، ولياقة بدنية.">
-    <!-- Social Sharing -->
-    <meta property="og:title" content="Mind AI: تطبيق حياتك اليومية">
-    <meta property="og:description" content="نظم حياتك، اعرف مستقبلك، وحافظ على لياقتك في مكان واحد.">
-    <meta property="og:image" content="preview.png">
-    <meta property="og:url" content="https://modasmadi.github.io/Mind/">
-    <meta property="og:type" content="website">
 
+    <!-- Scripts & Styles -->
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -24,30 +18,26 @@
     <div class="stars"></div>
     <div class="twinkling"></div>
 
-    <!-- Audio Assets (Hidden) -->
+    <!-- Audio Assets -->
     <audio id="audio-rain" loop src="https://assets.mixkit.co/sfx/preview/mixkit-light-rain-loop-2393.mp3"></audio>
     <audio id="audio-fire" loop
         src="https://assets.mixkit.co/sfx/preview/mixkit-campfire-crackling-logs-1569.mp3"></audio>
 
-    <!-- App Container -->
     <div class="app-container">
 
-        <!-- Header -->
         <header class="app-header">
             <div class="header-content">
                 <div class="logo">🔮 Mind <span class="badge">AI</span></div>
                 <div class="top-controls">
                     <div class="streak-badge">🔥 <span id="streak-count">0</span></div>
                     <button class="theme-btn" onclick="toggleTheme()"><i class="fa-solid fa-moon"></i></button>
-                    <!-- Icon switches in JS -->
                 </div>
             </div>
         </header>
 
-        <!-- Main Pages (Tab Content) -->
         <div id="pages-container">
 
-            <!-- Page 1: Entertainment (Home) -->
+            <!-- HOME -->
             <div id="page-home" class="page active-page">
                 <h2 class="section-title">✨ اكتشف المجهول</h2>
                 <div class="grid-menu">
@@ -74,7 +64,7 @@
                 </div>
             </div>
 
-            <!-- Page 2: Mind & Soul -->
+            <!-- MIND -->
             <div id="page-mind" class="page">
                 <h2 class="section-title">🧠 العقل والنفس</h2>
                 <div class="grid-menu">
@@ -93,7 +83,7 @@
                 </div>
             </div>
 
-            <!-- Page 3: Tools -->
+            <!-- TOOLS -->
             <div id="page-tools" class="page">
                 <h2 class="section-title">🛠️ أدوات ذكية</h2>
                 <div class="grid-menu">
@@ -112,11 +102,10 @@
                 </div>
             </div>
 
-            <!-- Page 4: Gym -->
+            <!-- GYM -->
             <div id="page-gym" class="page">
                 <h2 class="section-title">💪 النادي واللياقة</h2>
 
-                <!-- BMI Tool -->
                 <div class="gym-panel">
                     <h3>⚖️ حساب كتلة الجسم (BMI)</h3>
                     <div class="input-group">
@@ -127,7 +116,6 @@
                     <div id="bmi-result" class="result-box hidden"></div>
                 </div>
 
-                <!-- Workout Tool -->
                 <div class="gym-panel">
                     <h3>🏋️‍♂️ جدول تمرين مقترح</h3>
                     <select id="muscle-group">
@@ -141,7 +129,7 @@
                 </div>
             </div>
 
-            <!-- Page 5: Goals -->
+            <!-- GOALS -->
             <div id="page-goals" class="page">
                 <h2 class="section-title">✅ إنجازاتي اليومية</h2>
                 <div class="goals-container">
@@ -156,9 +144,8 @@
                 </div>
             </div>
 
-        </div> <!-- End Pages -->
+        </div>
 
-        <!-- Bottom Navigation Bar -->
         <nav class="bottom-nav">
             <div class="nav-item active" onclick="switchPage('home')">
                 <i class="fa-solid fa-wand-magic-sparkles"></i>
@@ -181,7 +168,6 @@
             </div>
         </nav>
 
-        <!-- Tool Modal -->
         <div id="tool-modal" class="modal hidden">
             <div class="modal-content">
                 <button class="close-modal" onclick="closeTool()">✕</button>
@@ -189,60 +175,47 @@
             </div>
         </div>
 
-        <!-- Hidden Loading for AI -->
         <div id="global-loading" class="hidden overlay-loading">
             <div class="spinner"></div>
-            <p>الذكاء الاصطناعي يحلل...</p>
+            <p>جارِ التحليل...</p>
         </div>
 
-    </div> <!-- End App Container -->
+    </div>
 
-    <!-- TEMPLATES FOR TOOLS (Hidden) -->
+    <!-- Hidden Templates -->
     <div id="templates" style="display: none !important;">
 
-        <!-- Focus Timer Template (UPDATED) -->
         <div id="tpl-focus">
-            <h2>⏳ مؤقت التركيز (للدراسة)</h2>
+            <h2>⏳ مؤقت التركيز</h2>
             <div class="focus-timer">
-
-                <!-- Time Selection -->
                 <div class="quick-select">
                     <button class="quick-btn" onclick="setFocusTime(25)">25 د</button>
                     <button class="quick-btn" onclick="setFocusTime(45)">45 د</button>
                     <button class="quick-btn" onclick="setFocusTime(60)">60 د</button>
                 </div>
-                <!-- Custom Input -->
-                <input type="number" id="focus-input" placeholder="دقائق مخصصة" style="text-align:center;">
-
-                <!-- Display -->
+                <input type="number" id="focus-input" placeholder="وقت مخصص" style="text-align:center;">
                 <div id="focus-display" class="focus-display">00:00</div>
-
-                <!-- Controls -->
                 <div class="timer-controls">
                     <button onclick="startFocus()" class="action-btn" style="background:#0984e3">ابدأ التركيز</button>
-                    <button onclick="stopFocus()" class="action-btn" style="background:#ff7675">إيقاف</button>
+                    <button onclick="stopFocus()" class="action-btn" style="background:#e74c3c">إيقاف</button>
                 </div>
-
-                <!-- White Noise -->
                 <div class="noise-controls">
                     <div style="text-align:center;">
                         <button class="noise-btn" id="btn-rain" onclick="toggleNoise('rain')">
                             <i class="fa-solid fa-cloud-rain"></i>
                         </button>
-                        <span style="font-size:0.8rem; font-weight:bold;">مطر</span>
+                        <span>مطر</span>
                     </div>
                     <div style="text-align:center;">
                         <button class="noise-btn" id="btn-fire" onclick="toggleNoise('fire')">
                             <i class="fa-solid fa-fire"></i>
                         </button>
-                        <span style="font-size:0.8rem; font-weight:bold;">نار</span>
+                        <span>نار</span>
                     </div>
                 </div>
-
             </div>
         </div>
 
-        <!-- Love Template -->
         <div id="tpl-love">
             <h2>❤️ مقياس الحب</h2>
             <input type="text" id="name1" placeholder="اسمك">
@@ -251,70 +224,50 @@
             <div id="love-result" class="result-box hidden"></div>
         </div>
 
-        <!-- Money Template -->
+        <!-- Other templates remain strictly the same just hidden -->
         <div id="tpl-money">
-            <h2>💰 متى سأصبح غنياً؟</h2>
-            <input type="text" id="money-name" placeholder="اسمك">
-            <button class="action-btn" onclick="predictMoney()">كشف المستقبل</button>
+            <h2>💰 الثروة</h2><input type="text" id="money-name" placeholder="اسمك"><button class="action-btn"
+                onclick="predictMoney()">كشف</button>
             <div id="money-result" class="result-box hidden"></div>
         </div>
-
-        <!-- Luck Template -->
         <div id="tpl-luck">
-            <h2>🍀 رسالة الحظ</h2>
+            <h2>🍀 الحظ</h2>
             <div class="crystal-ball-wrapper" onclick="getLuck()">
                 <div class="crystal-ball-lg"></div>
             </div>
-            <p>اضغط الكرة لمعرفة حظك</p>
+            <p>اضغط الكرة</p>
             <div id="luck-result" class="result-box hidden"></div>
         </div>
-
-        <!-- Dream Template -->
         <div id="tpl-dream">
-            <h2>🌙 مفسر الأحلام</h2>
-            <textarea id="dreamInput" placeholder="حلمت أنني..."></textarea>
-            <button class="action-btn" onclick="interpretDream()">فسّر الحلم</button>
+            <h2>🌙 الأحلام</h2><textarea id="dreamInput" placeholder="حلمت..."></textarea><button class="action-btn"
+                onclick="interpretDream()">تفسير</button>
             <div id="dream-result" class="result-box hidden"></div>
         </div>
-
-        <!-- Personality Template -->
         <div id="tpl-personality">
-            <h2>🧠 تحليل الشخصية</h2>
-            <input type="text" id="p-name" placeholder="اسمك الثلاثي">
-            <button class="action-btn" onclick="analyzePersonality()">بدء التحليل</button>
+            <h2>🧠 الشخصية</h2><input type="text" id="p-name" placeholder="الاسم"><button class="action-btn"
+                onclick="analyzePersonality()">تحليل</button>
             <div id="personality-result" class="result-box hidden"></div>
         </div>
-
-        <!-- Decision Template -->
         <div id="tpl-decision">
-            <h2>⚖️ محكمة القرار</h2>
-            <textarea id="decision-input" placeholder="هل أسافر؟ هل أشتري...؟"></textarea>
-            <button class="action-btn" onclick="makeDecision()">احكم الآن</button>
+            <h2>⚖️ القرار</h2><textarea id="decision-input" placeholder="محتار؟"></textarea><button class="action-btn"
+                onclick="makeDecision()">احكم</button>
             <div id="decision-result" class="result-box hidden"></div>
         </div>
-
-        <!-- Baby Template -->
         <div id="tpl-baby">
-            <h2>👶 اسم طفلي</h2>
-            <select id="baby-gender">
+            <h2>👶 طفلي</h2><select id="baby-gender">
                 <option value="boy">ولد</option>
                 <option value="girl">بنت</option>
-            </select>
-            <button class="action-btn" onclick="suggestBabyName()">اقتراح</button>
+            </select><button class="action-btn" onclick="suggestBabyName()">اقتراح</button>
             <div id="baby-result" class="result-box hidden"></div>
         </div>
-
-        <!-- Animal Template -->
         <div id="tpl-animal">
-            <h2>🦁 الحيوان الروحي</h2>
-            <input type="text" id="animal-name" placeholder="اسمك">
-            <button class="action-btn" onclick="findSpiritAnimal()">اكتشف</button>
+            <h2>🦁 الحيوان</h2><input type="text" id="animal-name" placeholder="اسمك"><button class="action-btn"
+                onclick="findSpiritAnimal()">اكتشف</button>
             <div id="animal-result" class="result-box hidden"></div>
         </div>
 
-        <!-- Calculator Template -->
         <div id="tpl-calculator">
-            <h2>🧮 الحاسبة الذكية</h2>
+            <h2>🧮 الحاسبة</h2>
             <div class="calculator">
                 <input type="text" id="calc-display" readonly>
                 <div class="calc-keys">
@@ -332,7 +285,6 @@
             </div>
         </div>
 
-        <!-- Stopwatch Template -->
         <div id="tpl-stopwatch">
             <h2>⏱️ ساعة الإيقاف</h2>
             <div class="timer-display" id="timer-display">00:00:00</div>

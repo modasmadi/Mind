@@ -5,7 +5,6 @@
     --dark: #000000;
     --dark-panel: #121212;
     --glass: rgba(255, 255, 255, 0.08);
-    /* Default Dark Glass */
     --border: rgba(255, 255, 255, 0.1);
     --nav-bg: rgba(20, 20, 20, 0.95);
     --text-main: #ffffff;
@@ -15,71 +14,35 @@
     --bg-gradient: radial-gradient(circle at top center, #1a0b2e 0%, #000000 70%);
 }
 
-/* LIGHT MODE VARIABLES */
+/* Light Mode */
 body.light-mode {
     --primary: #9b59b6;
     --secondary: #3498db;
-    --accent: #f39c12;
+    --accent: #d35400;
     --dark: #f5f6fa;
-    /* Actually Light Background */
     --dark-panel: #ffffff;
-    --glass: rgba(0, 0, 0, 0.05);
-    /* Light Glass */
+    --glass: rgba(255, 255, 255, 0.8);
     --border: rgba(0, 0, 0, 0.1);
-    --nav-bg: rgba(255, 255, 255, 0.95);
+    --nav-bg: #ffffff;
     --text-main: #2c3e50;
-    --text-sec: #7f8c8d;
+    --text-sec: #34495e;
     --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
+/* Base Styles */
 body {
     background-color: var(--dark);
     color: var(--text-main);
     font-family: 'Tajawal', sans-serif;
     font-weight: 500;
-    /* Better Readability */
     margin: 0;
     padding: 0;
     min-height: 100vh;
     overflow-x: hidden;
     background: var(--bg-gradient);
-    transition: background 0.5s ease, color 0.5s ease;
 }
 
-/* High Contrast Text for Accessibility */
-h1,
-h2,
-h3,
-h4,
-button,
-input,
-select {
-    color: var(--text-main) !important;
-    font-weight: 700 !important;
-    /* Bold for clarity */
-}
-
-p,
-span,
-div {
-    color: var(--text-sec);
-}
-
-/* Exception: Colored Action Buttons keep white text usually, but ensuring contrast */
-.action-btn {
-    color: white !important;
-}
-
-/* UTILITY CLASSES */
-.hidden {
-    display: none !important;
-}
-
-.center {
-    text-align: center;
-}
-
-/* Background Animation (Hide in Light Mode for clean look, or adjust) */
+/* Z-Index Handlers */
 .stars,
 .twinkling {
     position: fixed;
@@ -108,8 +71,6 @@ body.light-mode .twinkling {
     display: none;
 }
 
-/* Clean light mode */
-
 @keyframes starsMove {
     from {
         background-position: 0 0;
@@ -120,13 +81,20 @@ body.light-mode .twinkling {
     }
 }
 
-/* App Structure */
 .app-container {
     max-width: 600px;
     margin: 0 auto;
-    padding-bottom: 90px;
+    padding-bottom: 100px;
     min-height: 100vh;
     position: relative;
+    z-index: 1;
+    /* Ensure content is clicking */
+}
+
+/* Utility */
+.hidden {
+    display: none !important;
+    visibility: hidden !important;
 }
 
 /* Header */
@@ -135,7 +103,7 @@ body.light-mode .twinkling {
     padding: 20px;
     position: sticky;
     top: 0;
-    z-index: 10;
+    z-index: 50;
 }
 
 .header-content {
@@ -145,52 +113,52 @@ body.light-mode .twinkling {
 }
 
 .logo {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: 900;
     color: var(--text-main);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .badge {
     background: var(--primary);
     font-size: 0.7rem;
-    padding: 2px 6px;
+    padding: 3px 8px;
     border-radius: 6px;
-    color: white !important;
+    color: white;
+    vertical-align: top;
+}
+
+.top-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .streak-badge {
     background: var(--glass);
     padding: 5px 12px;
     border-radius: 20px;
-    font-size: 0.9rem;
-    border: 1px solid var(--border);
     font-weight: bold;
+    border: 1px solid var(--border);
 }
 
-/* Theme Toggle Button */
 .theme-btn {
-    background: var(--glass);
-    border: 1px solid var(--border);
-    color: var(--accent) !important;
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    cursor: pointer;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    color: var(--text-main);
     font-size: 1.2rem;
-    margin-left: 10px;
-    transition: 0.3s;
+    cursor: pointer;
 }
 
-.top-controls {
-    display: flex;
-    align-items: center;
-}
-
-
-/* Pages System */
+/* Page Layout */
 .page {
     display: none;
     padding: 15px;
+    width: 100%;
+    box-sizing: border-box;
     animation: fadeIn 0.3s ease;
 }
 
@@ -211,21 +179,18 @@ body.light-mode .twinkling {
 }
 
 .section-title {
-    margin: 10px 0 20px 0;
-    font-size: 1.4rem;
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 15px 0 25px 0;
     border-right: 5px solid var(--accent);
     padding-right: 15px;
-    background: linear-gradient(90deg, var(--glass), transparent);
-    padding-top: 5px;
-    padding-bottom: 5px;
-    border-radius: 0 10px 10px 0;
     color: var(--text-main);
 }
 
-/* Grid Menu */
+/* Cards (Buttons) */
 .grid-menu {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr 1fr;
     gap: 15px;
 }
 
@@ -233,42 +198,48 @@ body.light-mode .twinkling {
     background: var(--glass);
     border: 1px solid var(--border);
     border-radius: 20px;
-    padding: 20px;
+    padding: 25px 20px;
     text-align: center;
     cursor: pointer;
-    transition: 0.3s;
+    transition: transform 0.2s, background 0.2s;
     backdrop-filter: blur(10px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.glass-card:active {
+    transform: scale(0.95);
 }
 
 .glass-card:hover {
-    transform: translateY(-5px);
-    background: rgba(142, 68, 173, 0.1);
+    background: rgba(142, 68, 173, 0.15);
     border-color: var(--primary);
 }
 
 .glass-card .icon {
-    font-size: 2.2rem;
+    font-size: 2.5rem;
     margin-bottom: 15px;
     display: block;
 }
 
-body.light-mode .glass-card {
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+.glass-card h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
 }
 
-/* Bottom Navigation */
+/* Nav Bar */
 .bottom-nav {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
     background: var(--nav-bg);
-    backdrop-filter: blur(20px);
     border-top: 1px solid var(--border);
     display: flex;
     justify-content: space-around;
-    padding: 10px 0;
+    padding: 12px 0;
     z-index: 100;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.2);
 }
 
 .nav-item {
@@ -276,48 +247,44 @@ body.light-mode .glass-card {
     flex-direction: column;
     align-items: center;
     color: var(--text-sec);
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     font-weight: 700;
     cursor: pointer;
     width: 20%;
-    transition: 0.3s;
-}
-
-.nav-item i {
-    font-size: 1.4rem;
-    margin-bottom: 4px;
 }
 
 .nav-item.active {
-    color: var(--accent) !important;
-}
-
-.nav-item.active i,
-.nav-item.active span {
-    color: var(--accent) !important;
+    color: var(--accent);
 }
 
 .fab-circle {
+    width: 55px;
+    height: 55px;
     background: var(--primary);
-    width: 50px;
-    height: 50px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white !important;
-    margin-top: -30px;
-    box-shadow: 0 0 20px rgba(142, 68, 173, 0.4);
-    border: 4px solid var(--nav-bg);
-    /* Match nav bg to looking floating */
+    color: white;
+    margin-top: -35px;
+    border: 5px solid var(--dark);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
-.nav-item.active .fab-circle {
-    background: var(--accent);
-    color: black !important;
+body.light-mode .fab-circle {
+    border-color: var(--dark);
 }
 
-/* Modal System */
+/* Should match nav bg */
+body.light-mode .bottom-nav {
+    background: #ffffff;
+}
+
+body.light-mode .fab-circle {
+    border-color: #ffffff;
+}
+
+/* Modal */
 .modal {
     position: fixed;
     top: 0;
@@ -325,25 +292,22 @@ body.light-mode .glass-card {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.8);
+    z-index: 200;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    z-index: 200;
-}
-
-.modal.hidden {
-    display: none !important;
 }
 
 .modal-content {
     background: var(--nav-bg);
-    /* Use nav bg for consistent theme */
+    border-top: 1px solid var(--border);
     border-radius: 25px 25px 0 0;
     padding: 30px;
-    min-height: 60vh;
+    height: 70vh;
+    /* Fixed height for consistency */
+    overflow-y: auto;
     animation: slideUp 0.3s ease;
-    position: relative;
-    border-top: 1px solid var(--border);
+    box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.5);
     color: var(--text-main);
 }
 
@@ -363,274 +327,137 @@ body.light-mode .glass-card {
     left: 15px;
     background: var(--border);
     color: var(--text-main);
-    border: none;
-    width: 30px;
-    height: 30px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
+    border: none;
+    font-size: 1.2rem;
     cursor: pointer;
 }
 
-/* Forms & Inputs */
+/* Inputs & Actions */
 input,
 select,
 textarea {
     width: 100%;
     background: var(--glass);
     border: 2px solid var(--border);
-    /* Thicker border */
     border-radius: 12px;
     padding: 15px;
-    color: var(--text-main);
-    font-family: inherit;
+    font-size: 1.1rem;
     font-weight: 700;
+    color: var(--text-main);
     margin: 10px 0;
     box-sizing: border-box;
+    font-family: inherit;
 }
 
 input:focus {
     border-color: var(--primary);
+    outline: none;
 }
 
 .action-btn {
     width: 100%;
-    background: linear-gradient(90deg, var(--primary), #9b59b6);
+    background: var(--primary);
     color: white;
     border: none;
-    padding: 16px;
-    border-radius: 12px;
-    font-weight: 900;
-    font-size: 1.1rem;
-    cursor: pointer;
-    margin-top: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-/* Gym Section Styling */
-.gym-panel {
-    background: var(--glass);
-    border: 1px solid var(--border);
+    padding: 18px;
     border-radius: 15px;
-    padding: 20px;
-    margin-bottom: 20px;
+    font-size: 1.2rem;
+    font-weight: 900;
+    cursor: pointer;
+    margin-top: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-.gym-panel h3 {
-    margin-top: 0;
-    color: var(--accent) !important;
+.action-btn:active {
+    transform: scale(0.98);
 }
 
-.input-group {
-    display: flex;
-    gap: 10px;
-}
-
-.small-btn {
-    width: auto;
-    padding: 10px 30px;
-    font-size: 0.9rem;
-}
-
-/* Goals Section Styling */
+/* Goals */
 .add-goal-box {
     display: flex;
     gap: 10px;
 }
 
 .plus-btn {
+    width: 60px;
     background: var(--success);
     color: white;
     border: none;
-    width: 50px;
     border-radius: 12px;
     font-size: 1.5rem;
     cursor: pointer;
-}
-
-#goals-list {
-    list-style: none;
-    padding: 0;
-    margin-top: 20px;
 }
 
 .goal-item {
     background: var(--glass);
-    padding: 18px;
-    /* Bigger touch area */
+    padding: 15px;
     border-radius: 12px;
     margin-bottom: 10px;
     display: flex;
     align-items: center;
-    cursor: pointer;
-    transition: 0.2s;
-    border-right: 4px solid transparent;
     border: 1px solid var(--border);
-}
-
-.goal-item:hover {
-    background: rgba(142, 68, 173, 0.05);
+    cursor: pointer;
 }
 
 .goal-item.done {
-    opacity: 0.6;
     text-decoration: line-through;
-    border-right-color: var(--success);
+    opacity: 0.6;
+    border-right: 5px solid var(--success);
 }
 
 .goal-item i {
     margin-left: 10px;
-    color: var(--text-sec);
-}
-
-.goal-item.done i {
-    color: var(--success);
-}
-
-.empty-goals {
-    text-align: center;
-    color: var(--text-sec);
-    margin-top: 50px;
     font-size: 1.2rem;
 }
 
-/* Calculator Fixes */
-.calculator {
-    max-width: 100%;
-}
-
-.calc-keys {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-}
-
-.calc-keys button {
-    padding: 15px;
-    font-size: 1.3rem;
-    border-radius: 10px;
-    background: var(--glass);
-    color: var(--text-main);
-    border: 1px solid var(--border);
-}
-
-.calc-keys button:hover {
-    background: var(--border);
-}
-
-.op-btn {
-    background: rgba(243, 156, 18, 0.2) !important;
-    color: var(--accent) !important;
-}
-
-.equal-btn {
-    background: var(--success) !important;
-    color: white !important;
-    grid-column: span 2;
-}
-
-.clear-btn {
-    background: var(--danger) !important;
-    color: white !important;
-}
-
-/* Result Box */
-.result-box {
-    margin-top: 15px;
-    background: var(--glass);
-    padding: 15px;
-    border-radius: 10px;
-    text-align: center;
-    border: 1px solid var(--border);
-}
-
-/* Focus Timer Styles */
-.focus-timer {
-    text-align: center;
-    padding: 10px;
-}
-
+/* Focus & Noise */
 .focus-display {
-    font-size: 5rem;
+    font-size: 4.5rem;
     font-weight: 900;
-    color: var(--accent) !important;
-    margin: 10px 0;
+    color: var(--accent);
+    margin: 20px 0;
     font-family: monospace;
-    text-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-}
-
-.quick-select {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 15px;
 }
 
 .quick-btn {
     background: var(--glass);
-    border: 1px solid var(--border);
-    color: var(--text-sec);
-    padding: 8px 18px;
+    padding: 10px 20px;
     border-radius: 20px;
-    cursor: pointer;
+    border: 1px solid var(--border);
+    color: var(--text-main);
     font-weight: bold;
+    cursor: pointer;
 }
 
-.quick-btn:hover,
-.quick-btn.active {
-    background: var(--primary);
-    color: white !important;
-    border-color: var(--primary);
-}
-
-/* White Noise Controls */
 .noise-controls {
     display: flex;
-    justify-content: center;
     gap: 20px;
+    justify-content: center;
     margin-top: 20px;
-    background: var(--glass);
     padding: 15px;
+    background: var(--glass);
     border-radius: 20px;
-    border: 1px solid var(--border);
 }
 
 .noise-btn {
-    background: transparent;
-    border: 2px solid var(--border);
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    font-size: 1.5rem;
+    background: transparent;
+    border: 2px solid var(--border);
     color: var(--text-sec);
+    font-size: 1.5rem;
     cursor: pointer;
-    transition: 0.3s;
     display: flex;
-    align-items: center;
     justify-content: center;
-}
-
-.noise-btn:hover {
-    border-color: var(--primary);
-    color: var(--primary);
+    align-items: center;
 }
 
 .noise-btn.playing {
     background: var(--primary);
     color: white;
     border-color: var(--primary);
-    box-shadow: 0 0 15px var(--primary);
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% {
-        box-shadow: 0 0 0 0 rgba(142, 68, 173, 0.7);
-    }
-
-    70% {
-        box-shadow: 0 0 0 10px rgba(142, 68, 173, 0);
-    }
-
-    100% {
-        box-shadow: 0 0 0 0 rgba(142, 68, 173, 0);
-    }
 }
