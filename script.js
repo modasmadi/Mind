@@ -289,12 +289,7 @@ window.viewGratitudeHistory = function () {
     container.classList.remove('hidden');
 };
 
-// Hook into closeTool to stop breathing manually
-const originalCloseTool = window.closeTool;
-window.closeTool = function () {
-    stopBreathing();
-    if (originalCloseTool) originalCloseTool();
-};
+
 
 // --- GENERAL AI CHAT (ChatGPT-like) ---
 const GEMINI_API_KEY = "AIzaSyCO3_GJso855AiYzwVpkG5oMOUi82ED8cs";
