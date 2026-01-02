@@ -256,6 +256,39 @@ function stopBreathing() {
     if (text) text.innerText = "جاهز؟";
 }
 
+// --- GRATITUDE JOURNAL ---
+window.saveGratitude = function () {
+    const input = document.getElementById('gratitude-input');
+    const text = input.value.trim();
+    if (!text) return alert("اكتب شيئاً أولاً! 😊");
+
+    const entries = JSON.parse(localStorage.getItem('mind_gratitude')) || [];
+    entries.unshift({ date: new Date().toLocaleDateString('ar-EG'), text: text });
+    localStorage.setItem('mind_gratitude', JSON.stringify(entries));
+
+    input.value = "";
+    alert("تم الحفظ! شعور رائع! 💖");
+    viewGratitudeHistory(); // Refresh view if open
+};
+
+window.viewGratitudeHistory = function () {
+    const container = document.getElementById('gratitude-history');
+    if (!container) return;
+
+    const entries = JSON.parse(localStorage.getItem('mind_gratitude')) || [];
+    if (entries.length === 0) {
+        container.innerHTML = "<p style='text-align:center;'>لا يوجد مدخلات سابقة.</p>";
+    } else {
+        container.innerHTML = entries.map(e => `
+            <div style="background:#222; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #444;">
+                <div style="color:#888; font-size:0.8rem; margin-bottom:5px;">${e.date}</div>
+                <div style="color:white;">${e.text}</div>
+            </div>
+        `).join('');
+    }
+    container.classList.remove('hidden');
+};
+
 // Hook into closeTool to stop breathing manually
 const originalCloseTool = window.closeTool;
 window.closeTool = function () {

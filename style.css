@@ -1,781 +1,819 @@
-    margin-bottom: 20px;
+/* Dream AI Stylesheet */
+
+/* --- PROFESSIONAL CHATGPT STYLE UI --- */
+.chat-container-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 70vh;
+    /* Taller chat window */
+    background: #1a1a1a;
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+}
+
+.chat-header {
+    background: #202123;
+    padding: 15px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-family: 'Tajawal', sans-serif;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: #343541;
+    /* ChatGPT dark grey */
+    scroll-behavior: smooth;
+}
+
+/* Message Bubbles */
+.message {
+    display: flex;
+    gap: 15px;
+    padding: 20px;
+    line-height: 1.6;
+    font-size: 1rem;
+    color: #ececf1;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.message.ai-message {
+    background: #444654;
+    /* Distinct AI background */
+    margin: 0 -20px;
+    /* Full width feel */
+    padding-inline: 40px;
+    border-radius: 0;
+}
+
+.message.user-message {
+    background: transparent;
+    flex-direction: row-reverse;
+    /* Avatar support if needed */
+    padding-inline: 20px;
+}
+
+.msg-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.msg-content {
+    flex: 1;
+    overflow-x: auto;
+    /* For code blocks */
+}
+
+/* Code Blocks in Chat */
+.msg-content pre {
+    background: black;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 10px;
+    overflow-x: auto;
+    font-family: monospace;
+    direction: ltr;
+    /* Code is always LTR */
+}
+
+/* Input Area */
+.chat-input-area {
+    background: #343541;
+    padding: 20px;
+    border-top: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.input-wrapper {
+    width: 100%;
+    max-width: 768px;
+    /* Standard reading width */
+    background: #40414f;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    border: 1px solid #333;
+}
+
+#chat-input {
+    background: transparent;
+    border: none;
+    padding: 12px;
+    color: white;
+    font-size: 1rem;
+    flex: 1;
+    resize: none;
+    height: 50px;
+    /* Simplification */
+    font-family: inherit;
+}
+
+#chat-input:focus {
+    outline: none;
+}
+
+.action-icon-btn {
+    background: transparent;
+    border: none;
+    color: #acacbe;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: 0.2s;
+    font-size: 1.1rem;
+}
+
+.action-icon-btn:hover {
+    background: #202123;
+    color: white;
+}
+
+.send-btn-icon {
+    color: #19c37d;
+    /* ChatGPT Green */
+}
+
+/* Preview Image */
+#image-preview {
+    background: #202123;
+    padding: 5px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    display: inline-block;
+    position: relative;
+    border: 1px solid #444;
+}
+
+/* --- GENERAL POLISH --- */
+.modal-content {
+    background: #1a1a1a;
+    /* Darker clean background */
+    border: 1px solid #333;
+    padding: 0;
+    /* Remove padding for full edge-to-edge chat */
+    overflow: hidden;
+    max-width: 900px;
+    /* Wider modal */
+    width: 95%;
+    border-radius: 15px;
+}
+
+/* Close button adjustment */
+.close-modal {
+    z-index: 10;
+    top: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+}
+
+/* --- OVERHAUL: OLED BLACK THEME --- */
+:root {
+    --bg-gradient: #000000;
+    /* True OLED Black */
+    --glass: rgba(20, 20, 20, 0.9);
+    /* Very dark styling, almost opaque */
+    --border: rgba(255, 255, 255, 0.15);
+    /* Higher contrast border */
+    --nav-bg: #000000;
+    --text-main: #ffffff;
+    --text-sec: #cccccc;
+    --primary: #ffffff;
+    /* White accents for high contrast */
+    --accent: #ffffff;
+    --success: #00ff00;
+    /* Pure Green */
+    --font-weight-normal: 700;
+    --font-weight-bold: 900;
+}
+
+body.light-mode {
+    --bg-gradient: #ffffff;
+    --glass: #f0f0f0;
+    --border: #000000;
+    --nav-bg: #ffffff;
+    --text-main: #000000;
+    --text-sec: #333333;
+    --primary: #000000;
+    --accent: #000000;
+    --success: #008f00;
+}
+
+body {
+    background: var(--bg-gradient);
+    color: var(--text-main);
+    font-family: 'Tajawal', sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+    font-weight: var(--font-weight-normal);
+}
+
+/* Bold Typography Overrides */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.5px;
+}
+
+p,
+span,
+div,
+input,
+button,
+textarea {
+    font-weight: var(--font-weight-normal);
+}
+
+.app-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding-bottom: 100px;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* UI Components */
+.app-header {
+    background: linear-gradient(180deg, var(--nav-bg), transparent);
+    padding: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--text-main);
+}
+
+.badge {
+    background: var(--primary);
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 6px;
+    color: white;
+}
+
+.top-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.streak-badge {
+    background: var(--glass);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    border: 1px solid var(--border);
+}
+
+.theme-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--glass);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.page {
+    display: none;
+    padding: 15px;
+    animation: fadeIn 0.3s ease;
+}
+
+.active-page {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.section-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 15px 0 25px 0;
+    border-right: 5px solid var(--accent);
+    padding-right: 15px;
+    color: var(--text-main);
+}
+
+.grid-menu {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.glass-card {
+    background: #111;
+    /* Solid dark near-black */
+    border: 2px solid var(--border);
+    /* Thicker border */
+    border-radius: 15px;
+    /* Slightly sharper */
+    padding: 25px 20px;
     text-align: center;
-    }
-
-    /* --- PROFESSIONAL CHATGPT STYLE UI --- */
-    .chat-container-wrapper {
-        display: flex;
-        flex-direction: column;
-        height: 70vh;
-        /* Taller chat window */
-        background: #1a1a1a;
-        border-radius: 15px;
-        overflow: hidden;
-        position: relative;
-    }
-
-    .chat-header {
-        background: #202123;
-        padding: 15px;
-        border-bottom: 1px solid #333;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        font-family: 'Tajawal', sans-serif;
-    }
-
-    .chat-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        background: #343541;
-        /* ChatGPT dark grey */
-        scroll-behavior: smooth;
-    }
-
-    /* Message Bubbles */
-    .message {
-        display: flex;
-        gap: 15px;
-        padding: 20px;
-        line-height: 1.6;
-        font-size: 1rem;
-        color: #ececf1;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    }
-
-    .message.ai-message {
-        background: #444654;
-        /* Distinct AI background */
-        margin: 0 -20px;
-        /* Full width feel */
-        padding-inline: 40px;
-        border-radius: 0;
-    }
-
-    .message.user-message {
-        background: transparent;
-        flex-direction: row-reverse;
-        /* Avatar support if needed */
-        padding-inline: 20px;
-    }
-
-    .msg-avatar {
-        width: 30px;
-        height: 30px;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-    }
-
-    .msg-content {
-        flex: 1;
-        overflow-x: auto;
-        /* For code blocks */
-    }
-
-    /* Code Blocks in Chat */
-    .msg-content pre {
-        background: black;
-        padding: 10px;
-        border-radius: 6px;
-        margin-top: 10px;
-        overflow-x: auto;
-        font-family: monospace;
-        direction: ltr;
-        /* Code is always LTR */
-    }
-
-    /* Input Area */
-    .chat-input-area {
-        background: #343541;
-        padding: 20px;
-        border-top: 1px solid #333;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .input-wrapper {
-        width: 100%;
-        max-width: 768px;
-        /* Standard reading width */
-        background: #40414f;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        padding: 5px 10px;
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-        border: 1px solid #333;
-    }
-
-    #chat-input {
-        background: transparent;
-        border: none;
-        padding: 12px;
-        color: white;
-        font-size: 1rem;
-        flex: 1;
-        resize: none;
-        height: 50px;
-        /* Simplification */
-        font-family: inherit;
-    }
-
-    #chat-input:focus {
-        outline: none;
-    }
-
-    .action-icon-btn {
-        background: transparent;
-        border: none;
-        color: #acacbe;
-        padding: 8px;
-        cursor: pointer;
-        border-radius: 5px;
-        transition: 0.2s;
-        font-size: 1.1rem;
-    }
-
-    .action-icon-btn:hover {
-        background: #202123;
-        color: white;
-    }
-
-    .send-btn-icon {
-        color: #19c37d;
-        /* ChatGPT Green */
-    }
-
-    /* Preview Image */
-    #image-preview {
-        background: #202123;
-        padding: 5px;
-        border-radius: 8px;
-        margin-bottom: 10px;
-        display: inline-block;
-        position: relative;
-        border: 1px solid #444;
-    }
-
-    /* --- GENERAL POLISH --- */
-    .modal-content {
-        background: #1a1a1a;
-        /* Darker clean background */
-        border: 1px solid #333;
-        padding: 0;
-        /* Remove padding for full edge-to-edge chat */
-        overflow: hidden;
-        max-width: 900px;
-        /* Wider modal */
-        width: 95%;
-        border-radius: 15px;
-    }
-
-    /* Close button adjustment */
-    .close-modal {
-        z-index: 10;
-        top: 15px;
-        right: 15px;
-        background: rgba(0, 0, 0, 0.5);
-        color: white;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-    }
-
-    /* --- OVERHAUL: Futuristic Tweaks --- */
-    :root {
-        --bg-gradient: linear-gradient(135deg, #1e1e2e 0%, #000000 100%);
-        --glass: rgba(255, 255, 255, 0.04);
-        --border: rgba(255, 255, 255, 0.08);
-        --nav-bg: rgba(10, 10, 10, 0.9);
-    }
-
-    h2,
-    h3 {
-        text-shadow: 0 0 20px rgba(142, 68, 173, 0.3);
-    }
-
-    .glass-card {
-        background: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-
-    body.light-mode {
-        --primary: #9b59b6;
-        --secondary: #3498db;
-        --accent: #d35400;
-        --dark: #f5f6fa;
-        --dark-panel: #ffffff;
-        --glass: rgba(255, 255, 255, 0.8);
-        --border: rgba(0, 0, 0, 0.1);
-        --nav-bg: #ffffff;
-        --text-main: #2c3e50;
-        --text-sec: #34495e;
-        --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    }
-
-    body {
-        background: var(--bg-gradient);
-        color: var(--text-main);
-        font-family: 'Tajawal', sans-serif;
-        margin: 0;
-        padding: 0;
-        min-height: 100vh;
-        overflow-x: hidden;
-    }
-
-    .app-container {
-        max-width: 600px;
-        margin: 0 auto;
-        padding-bottom: 100px;
-        min-height: 100vh;
-        position: relative;
-        z-index: 1;
-    }
-
-    .hidden {
-        display: none !important;
-    }
-
-    /* UI Components */
-    .app-header {
-        background: linear-gradient(180deg, var(--nav-bg), transparent);
-        padding: 20px;
-        position: sticky;
-        top: 0;
-        z-index: 50;
-    }
-
-    .header-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .logo {
-        font-size: 1.6rem;
-        font-weight: 900;
-        color: var(--text-main);
-    }
-
-    .badge {
-        background: var(--primary);
-        font-size: 0.7rem;
-        padding: 3px 8px;
-        border-radius: 6px;
-        color: white;
-    }
-
-    .top-controls {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .streak-badge {
-        background: var(--glass);
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-weight: bold;
-        border: 1px solid var(--border);
-    }
-
-    .theme-btn {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: var(--glass);
-        border: 1px solid var(--border);
-        color: var(--text-main);
-        font-size: 1.2rem;
-        cursor: pointer;
-    }
-
-    .page {
-        display: none;
-        padding: 15px;
-        animation: fadeIn 0.3s ease;
-    }
-
-    .active-page {
-        display: block;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .section-title {
-        font-size: 1.5rem;
-        font-weight: 800;
-        margin: 15px 0 25px 0;
-        border-right: 5px solid var(--accent);
-        padding-right: 15px;
-        color: var(--text-main);
-    }
-
-    .grid-menu {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
-    }
-
-    .glass-card {
-        background: var(--glass);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 25px 20px;
-        text-align: center;
-        cursor: pointer;
-        transition: 0.2s;
-        backdrop-filter: blur(10px);
-    }
-
-    .glass-card:active {
-        transform: scale(0.95);
-    }
-
-    .glass-card:hover {
-        border-color: var(--primary);
-        background: rgba(142, 68, 173, 0.15);
-    }
-
-    .glass-card .icon {
-        font-size: 2.5rem;
-        margin-bottom: 15px;
-        display: block;
-    }
-
-    .bottom-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        background: var(--nav-bg);
-        border-top: 1px solid var(--border);
-        display: flex;
-        justify-content: space-around;
-        padding: 12px 0;
-        z-index: 100;
-        box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.2);
-    }
-
-    .nav-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        color: var(--text-sec);
-        font-size: 0.8rem;
-        font-weight: 700;
-        cursor: pointer;
-        width: 33%;
-    }
-
-    .nav-item.active {
-        color: var(--accent);
-    }
-
-    .fab-circle {
-        width: 55px;
-        height: 55px;
-        background: var(--primary);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        margin-top: -35px;
-        border: 5px solid var(--dark);
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    }
-
-    body.light-mode .fab-circle {
-        border-color: #ffffff;
-    }
-
-    body.light-mode .bottom-nav {
-        background: #ffffff;
-    }
-
-    /* Fixed: Modal */
-    .modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.8);
-        z-index: 200;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-    }
-
-    .modal-content {
-        background: var(--nav-bg);
-        border-top: 1px solid var(--border);
-        border-radius: 25px 25px 0 0;
-        padding: 30px;
-        height: 80vh;
-        overflow-y: auto;
-        color: var(--text-main);
-        animation: slideUp 0.3s ease;
-        position: relative;
-    }
-
-    @keyframes slideUp {
-        from {
-            transform: translateY(100%);
-        }
-
-        to {
-            transform: translateY(0);
-        }
-    }
-
-    .close-modal {
-        position: absolute;
-        top: 15px;
-        left: 15px;
-        background: var(--border);
-        color: var(--text-main);
-        width: 35px;
-        height: 35px;
-        border-radius: 50%;
-        border: none;
-        font-size: 1.2rem;
-        cursor: pointer;
-        z-index: 10;
-    }
-
-    /* INPUTS & SELECTS FIX */
-    input,
-    select,
-    textarea {
-        width: 100%;
-        background: var(--glass);
-        border: 2px solid var(--border);
-        border-radius: 12px;
-        padding: 15px;
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--text-main);
-        margin: 10px 0;
-        box-sizing: border-box;
-        font-family: inherit;
-        appearance: none;
-        -webkit-appearance: none;
-    }
-
-    /* Special fix for Select Options Visibility */
-    select option {
-        background-color: #2c3e50;
-        color: white;
-    }
-
-    body.light-mode select option {
-        background-color: #ffffff;
-        color: #000000;
-    }
-
-    .action-btn {
-        width: 100%;
-        background: var(--primary);
-        color: white;
-        border: none;
-        padding: 18px;
-        border-radius: 15px;
-        font-size: 1.2rem;
-        font-weight: 900;
-        cursor: pointer;
-        margin-top: 15px;
-    }
-
-    .small-btn {
-        padding: 12px;
-        font-size: 1rem;
-        width: auto;
-        min-width: 120px;
-    }
-
-    /* Daily Dashboard */
-    .daily-quote-box {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 20px;
-        padding: 20px;
-        margin-bottom: 25px;
-        color: white;
-        box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .daily-quote-box::before {
-        content: '"';
-        font-size: 8rem;
-        position: absolute;
-        top: -20px;
-        right: 10px;
-        opacity: 0.1;
-        font-family: serif;
-    }
-
-    .quote-header {
-        font-size: 0.9rem;
-        margin-bottom: 10px;
-        opacity: 0.9;
-    }
-
-    .quote-text {
-        font-size: 1.2rem;
-        font-weight: 700;
-        line-height: 1.6;
-        margin: 0;
-        font-style: italic;
-    }
-
-    .dashboard-card {
-        background: var(--glass);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-
-    .water-grid {
-        display: flex;
-        justify-content: space-around;
-        margin-top: 15px;
-    }
-
-    .water-cup {
-        font-size: 2rem;
-        color: var(--text-sec);
-        cursor: pointer;
-        transition: 0.3s;
-    }
-
-    .water-cup.filled {
-        color: #3498db;
-        transform: scale(1.1);
-        filter: drop-shadow(0 0 5px #3498db);
-    }
-
-    .habits-list {
-        list-style: none;
-        padding: 0;
-        margin: 15px 0 0 0;
-    }
-
-    .habit-item {
-        display: flex;
-        align-items: center;
-        padding: 12px 0;
-        border-bottom: 1px solid var(--border);
-        cursor: pointer;
-    }
-
-    .habit-item.done {
-        text-decoration: line-through;
-        opacity: 0.7;
-    }
-
-    .habit-item.done i {
-        color: var(--success);
-    }
-
-    .habit-item i {
-        font-size: 1.5rem;
-        margin-right: 15px;
-        color: var(--text-sec);
-    }
-
-    /* Gym */
-    .gym-panel {
-        background: var(--glass);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-
-    .result-box {
-        margin-top: 15px;
-        padding: 15px;
-        background: rgba(0, 0, 0, 0.3);
-        border-radius: 10px;
-        border: 1px solid var(--border);
-        animation: fadeIn 0.3s ease;
-    }
-
-    /* iOS Calc */
-    .ios-calc-wrapper {
-        background: #000000;
-        border-radius: 40px;
-        padding: 30px 20px;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-        margin: 0 auto;
-        max-width: 400px;
-    }
-
-    .calc-display-area input {
-        width: 100%;
-        background: transparent;
-        border: none;
-        text-align: right;
-        color: white;
-        font-size: 5rem;
-        font-weight: 200;
-        padding: 0 10px 20px 0;
-        margin-bottom: 10px;
-        font-family: -apple-system, system-ui, sans-serif;
-    }
-
-    .ios-keys {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 14px;
-    }
-
-    .ios-keys button {
-        width: 100%;
-        aspect-ratio: 1;
-        border-radius: 50%;
-        border: none;
-        font-size: 2rem;
-        font-weight: 400;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: -apple-system, system-ui, sans-serif;
-        padding-bottom: 3px;
-    }
-
-    .ios-keys button:active {
-        filter: brightness(1.3);
-    }
-
-    button.btn-dark {
-        background: #333333;
-        color: white;
-    }
-
-    button.btn-grey {
-        background: #a5a5a5;
-        color: black;
-        font-weight: 500;
-    }
-
-    button.btn-orange {
-        background: #ff9f0a;
-        color: white;
-        font-size: 2.2rem;
-        font-weight: 500;
-    }
-
-    button.span-2 {
-        grid-column: span 2;
-        aspect-ratio: auto;
-        width: 100%;
-        border-radius: 100px;
-        justify-content: flex-start;
-        padding-left: 30px;
-    }
-
-    /* Focus */
-    .focus-display {
-        font-size: 4.5rem;
-        font-weight: 900;
-        color: var(--accent);
-        margin: 20px 0;
-        font-family: monospace;
-    }
-
-    .quick-btn {
-        background: var(--glass);
-        padding: 10px 20px;
-        border-radius: 20px;
-        border: 1px solid var(--border);
-        color: var(--text-main);
-        cursor: pointer;
-    }
-
-    .noise-controls {
-        display: flex;
-        gap: 20px;
-        justify-content: center;
-        margin-top: 20px;
-        padding: 15px;
-        background: var(--glass);
-        border-radius: 20px;
-    }
-
-    .noise-btn {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: transparent;
-        border: 2px solid var(--border);
-        color: var(--text-sec);
-        font-size: 1.5rem;
-        cursor: pointer;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .noise-btn.playing {
-        background: var(--primary);
-        color: white;
-        border-color: var(--primary);
-        animation: pulse 2s infinite;
-    }
-
-    .goal-item {
-        background: var(--glass);
-        padding: 15px;
-        border-radius: 12px;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        border: 1px solid var(--border);
-    }
-
-    .goal-item.done {
-        text-decoration: line-through;
-        opacity: 0.6;
-        border-right: 5px solid var(--success);
-    }
-
-    .add-goal-box {
-        display: flex;
-        gap: 10px;
-    }
-
-    .plus-btn {
-        width: 60px;
-        background: var(--success);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-size: 1.5rem;
-        cursor: pointer;
-    }
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow: none;
+    /* Flat look */
+}
+
+.glass-card:active {
+    transform: scale(0.98);
+    background: #222;
+}
+
+.glass-card:hover {
+    border-color: var(--primary);
+    background: #000;
+}
+
+.glass-card .icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    display: block;
+    color: var(--primary) !important;
+    /* Force white icons in dark mode */
+}
+
+body.light-mode .glass-card .icon {
+    color: #000 !important;
+}
+
+/* Special override for colored icons if desired, but user asked for B&W/Bold style mainly. 
+       Let's keep them white for maximum contrast in OLED mode. */
+
+.glass-card .icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--nav-bg);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0;
+    z-index: 100;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.2);
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--text-sec);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    width: 33%;
+}
+
+.nav-item.active {
+    color: var(--accent);
+}
+
+.fab-circle {
+    width: 55px;
+    height: 55px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-top: -35px;
+    border: 5px solid var(--dark);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+body.light-mode .fab-circle {
+    border-color: #ffffff;
+}
+
+body.light-mode .bottom-nav {
+    background: #ffffff;
+}
+
+/* Fixed: Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.modal-content {
+    background: var(--nav-bg);
+    border-top: 1px solid var(--border);
+    border-radius: 25px 25px 0 0;
+    padding: 30px;
+    height: 80vh;
+    overflow-y: auto;
+    color: var(--text-main);
+    animation: slideUp 0.3s ease;
+    position: relative;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: var(--border);
+    color: var(--text-main);
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    z-index: 10;
+}
+
+/* INPUTS & SELECTS FIX */
+input,
+select,
+textarea {
+    width: 100%;
+    background: var(--glass);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 15px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 10px 0;
+    box-sizing: border-box;
+    font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+/* Special fix for Select Options Visibility */
+select option {
+    background-color: #2c3e50;
+    color: white;
+}
+
+body.light-mode select option {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+.action-btn {
+    width: 100%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 18px;
+    border-radius: 15px;
+    font-size: 1.2rem;
+    font-weight: 900;
+    cursor: pointer;
+    margin-top: 15px;
+}
+
+.small-btn {
+    padding: 12px;
+    font-size: 1rem;
+    width: auto;
+    min-width: 120px;
+}
+
+/* Daily Dashboard */
+.daily-quote-box {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 25px;
+    color: white;
+    box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.daily-quote-box::before {
+    content: '"';
+    font-size: 8rem;
+    position: absolute;
+    top: -20px;
+    right: 10px;
+    opacity: 0.1;
+    font-family: serif;
+}
+
+.quote-header {
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    opacity: 0.9;
+}
+
+.quote-text {
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.6;
+    margin: 0;
+    font-style: italic;
+}
+
+.dashboard-card {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.water-grid {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 15px;
+}
+
+.water-cup {
+    font-size: 2rem;
+    color: var(--text-sec);
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.water-cup.filled {
+    color: #3498db;
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 5px #3498db);
+}
+
+.habits-list {
+    list-style: none;
+    padding: 0;
+    margin: 15px 0 0 0;
+}
+
+.habit-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+}
+
+.habit-item.done {
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.habit-item.done i {
+    color: var(--success);
+}
+
+.habit-item i {
+    font-size: 1.5rem;
+    margin-right: 15px;
+    color: var(--text-sec);
+}
+
+/* Gym */
+.gym-panel {
+    background: var(--glass);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.result-box {
+    margin-top: 15px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    animation: fadeIn 0.3s ease;
+}
+
+/* iOS Calc */
+.ios-calc-wrapper {
+    background: #000000;
+    border-radius: 40px;
+    padding: 30px 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    margin: 0 auto;
+    max-width: 400px;
+}
+
+.calc-display-area input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    text-align: right;
+    color: white;
+    font-size: 5rem;
+    font-weight: 200;
+    padding: 0 10px 20px 0;
+    margin-bottom: 10px;
+    font-family: -apple-system, system-ui, sans-serif;
+}
+
+.ios-keys {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.ios-keys button {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: none;
+    font-size: 2rem;
+    font-weight: 400;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, system-ui, sans-serif;
+    padding-bottom: 3px;
+}
+
+.ios-keys button:active {
+    filter: brightness(1.3);
+}
+
+button.btn-dark {
+    background: #333333;
+    color: white;
+}
+
+button.btn-grey {
+    background: #a5a5a5;
+    color: black;
+    font-weight: 500;
+}
+
+button.btn-orange {
+    background: #ff9f0a;
+    color: white;
+    font-size: 2.2rem;
+    font-weight: 500;
+}
+
+button.span-2 {
+    grid-column: span 2;
+    aspect-ratio: auto;
+    width: 100%;
+    border-radius: 100px;
+    justify-content: flex-start;
+    padding-left: 30px;
+}
+
+/* Focus */
+.focus-display {
+    font-size: 4.5rem;
+    font-weight: 900;
+    color: var(--accent);
+    margin: 20px 0;
+    font-family: monospace;
+}
+
+.quick-btn {
+    background: var(--glass);
+    padding: 10px 20px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    cursor: pointer;
+}
+
+.noise-controls {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 20px;
+    padding: 15px;
+    background: var(--glass);
+    border-radius: 20px;
+}
+
+.noise-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: transparent;
+    border: 2px solid var(--border);
+    color: var(--text-sec);
+    font-size: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.noise-btn.playing {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    animation: pulse 2s infinite;
+}
+
+.goal-item {
+    background: var(--glass);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--border);
+}
+
+.goal-item.done {
+    text-decoration: line-through;
+    opacity: 0.6;
+    border-right: 5px solid var(--success);
+}
+
+.add-goal-box {
+    display: flex;
+    gap: 10px;
+}
+
+.plus-btn {
+    width: 60px;
+    background: var(--success);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
