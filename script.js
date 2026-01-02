@@ -4,16 +4,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function initApp() {
     try {
+        // Restore Streak
         const streak = localStorage.getItem('mind_streak') || 0;
         const el = document.getElementById('streak-count');
         if (el) el.innerText = streak;
     } catch (e) { }
 
     try {
+        // Restore Theme
         if (localStorage.getItem('mind_theme') === 'light') {
             document.body.classList.add('light-mode');
         }
     } catch (e) { }
+
+    // Init Goals
     renderGoals();
 }
 
@@ -24,7 +28,8 @@ window.switchPage = function (pageId) {
     if (target) target.classList.add('active-page');
 
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    // Simple manual mapping
+
+    // Manual mapping
     const navs = document.querySelectorAll('.nav-item');
     if (pageId === 'home' && navs[0]) navs[0].classList.add('active');
     if (pageId === 'mind' && navs[1]) navs[1].classList.add('active');
@@ -43,11 +48,12 @@ window.openTool = function (toolName) {
     const modal = document.getElementById('tool-modal');
     const body = document.getElementById('modal-body');
     const tpl = document.getElementById('tpl-' + toolName);
+
     if (!modal || !body || !tpl) return;
+
     body.innerHTML = tpl.innerHTML;
     modal.classList.remove('hidden');
 
-    // Reset Calc State if opened
     if (toolName === 'calculator') clearCalc();
 };
 
@@ -59,36 +65,29 @@ window.closeTool = function () {
     stopAllNoise();
 };
 
-// --- Audio System (Fixed) ---
-const audioSources = {
-    'rain': 'https://assets.mixkit.co/sfx/preview/mixkit-light-rain-loop-2393.mp3',
-    'fire': 'https://assets.mixkit.co/sfx/preview/mixkit-campfire-crackling-logs-1569.mp3'
-};
-let activeAudios = {};
-
+// --- Audio System (Robust via HTML Tabs) ---
 window.toggleNoise = function (type) {
+    const audio = document.getElementById('audio-' + type);
     const btn = document.getElementById('modal-body').querySelector('#btn-' + type);
+    if (!audio) return;
 
-    if (activeAudios[type]) {
-        // Stop
-        activeAudios[type].pause();
-        delete activeAudios[type];
-        if (btn) btn.classList.remove('playing');
+    if (audio.paused) {
+        audio.play().then(() => {
+            if (btn) btn.classList.add('playing');
+        }).catch(e => {
+            console.warn("Audio Play Error:", e);
+        });
     } else {
-        // Play
-        const audio = new Audio(audioSources[type]);
-        audio.loop = true;
-        audio.play().catch(e => alert("Please interact with the page first"));
-        activeAudios[type] = audio;
-        if (btn) btn.classList.add('playing');
+        audio.pause();
+        if (btn) btn.classList.remove('playing');
     }
 };
 
 window.stopAllNoise = function () {
-    Object.keys(activeAudios).forEach(key => {
-        activeAudios[key].pause();
+    ['rain', 'fire'].forEach(t => {
+        const a = document.getElementById('audio-' + t);
+        if (a) { a.pause(); a.currentTime = 0; }
     });
-    activeAudios = {};
 };
 
 // --- Focus Timer ---
@@ -119,7 +118,9 @@ window.startFocus = function () {
         focusSeconds--;
         if (focusSeconds <= 0) {
             stopFocus();
-            new Audio('https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3').play().catch(e => { });
+            // Try to play alarm
+            const alarm = document.getElementById('audio-alarm');
+            if (alarm) alarm.play().catch(() => { });
             alert("⏰ انتهى الوقت!");
         }
         updateFocusDisplay();
@@ -149,7 +150,7 @@ window.appendCalc = function (v) {
 };
 
 window.chooseOp = function (op) {
-    if (calcStr.slice(-1).match(/[+\-*/]/)) return; // Prevent double ops
+    if (calcStr.slice(-1).match(/[+\-*/]/)) return;
     calcStr += op;
     updateCalc();
 };
@@ -161,15 +162,15 @@ window.clearCalc = function () {
 
 window.toggleSign = function () {
     if (calcStr === "0") return;
-    // Simple toggle for single numbers, complex for expressions
-    if (!isNaN(calcStr)) {
+    // Basic toggle
+    if (!isNaN(parseFloat(calcStr))) {
         calcStr = (parseFloat(calcStr) * -1).toString();
     }
     updateCalc();
 };
 
 window.percent = function () {
-    if (!isNaN(calcStr)) {
+    if (!isNaN(parseFloat(calcStr))) {
         calcStr = (parseFloat(calcStr) / 100).toString();
         updateCalc();
     }
@@ -177,8 +178,13 @@ window.percent = function () {
 
 window.calculate = function () {
     try {
-        // Safe eval
+        // Eval safe string
         calcStr = eval(calcStr.replace('×', '*').replace('÷', '/')).toString();
+        // Limit decimals
+        if (calcStr.includes('.')) {
+            const arr = calcStr.split('.');
+            if (arr[1].length > 5) calcStr = parseFloat(calcStr).toFixed(5);
+        }
     } catch {
         calcStr = "Error";
     }
@@ -190,7 +196,7 @@ function updateCalc() {
     if (el) el.value = calcStr;
 }
 
-// --- Goals & Magic Tools (Standard) ---
+// --- Goals & Magic Tools ---
 const goalsKey = 'mind_goals_v1';
 let goals = JSON.parse(localStorage.getItem(goalsKey)) || [];
 
@@ -227,7 +233,7 @@ function setModalHtml(id, h) { const el = getModalElement('#' + id); if (el) { e
 function showLoading(cb) { const l = document.getElementById('global-loading'); if (l) l.classList.remove('hidden'); setTimeout(() => { if (l) l.classList.add('hidden'); cb(); }, 800); }
 function getVal(id) { const el = getModalElement('#' + id); return el ? el.value : ''; }
 
-// Magic Functions
+// Magic
 window.calculateLove = function () { if (!getVal('name1')) return; showLoading(() => { setModalHtml('love-result', `<h1 style="color:#ff7675">${Math.floor(Math.random() * 50) + 50}%</h1><p>حب حقيقي!</p>`); }); };
 window.predictMoney = function () { if (!getVal('money-name')) return; showLoading(() => { const f = ["ثروة طائلة", "نجاح مبهر", "استقرار مالي"]; setModalHtml('money-result', `<h3>${f[Math.floor(Math.random() * f.length)]}</h3>`); }); };
 window.getLuck = function () { showLoading(() => { setModalHtml('luck-result', `<h3>أيام سعيدة قادمة ✨</h3>`); }); };

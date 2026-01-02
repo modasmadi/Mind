@@ -17,7 +17,14 @@
     <div class="stars"></div>
     <div class="twinkling"></div>
 
-    <!-- App Container -->
+    <!-- Audio Assets (Back in DOM for Reliability) -->
+    <audio id="audio-rain" loop preload="auto"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-light-rain-loop-2393.mp3"></audio>
+    <audio id="audio-fire" loop preload="auto"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-campfire-crackling-logs-1569.mp3"></audio>
+    <audio id="audio-alarm" preload="auto"
+        src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3"></audio>
+
     <div class="app-container">
 
         <header class="app-header">
@@ -31,76 +38,71 @@
         </header>
 
         <div id="pages-container">
-
-            <!-- HOME -->
+            <!-- Pages Content (No Change) -->
             <div id="page-home" class="page active-page">
                 <h2 class="section-title">✨ اكتشف المجهول</h2>
                 <div class="grid-menu">
-                    <div class="glass-card" onclick="openTool('love')">
-                        <i class="fa-solid fa-heart icon" style="color:#ff7675;"></i>
+                    <div class="glass-card" onclick="openTool('love')"><i class="fa-solid fa-heart icon"
+                            style="color:#ff7675;"></i>
                         <h3>مقياس الحب</h3>
                     </div>
-                    <div class="glass-card" onclick="openTool('money')">
-                        <i class="fa-solid fa-sack-dollar icon" style="color:#fdcb6e;"></i>
+                    <div class="glass-card" onclick="openTool('money')"><i class="fa-solid fa-sack-dollar icon"
+                            style="color:#fdcb6e;"></i>
                         <h3>الثروة</h3>
                     </div>
-                    <div class="glass-card" onclick="openTool('luck')">
-                        <i class="fa-solid fa-clover icon" style="color:#00b894;"></i>
+                    <div class="glass-card" onclick="openTool('luck')"><i class="fa-solid fa-clover icon"
+                            style="color:#00b894;"></i>
                         <h3>رسالة الحظ</h3>
                     </div>
-                    <div class="glass-card" onclick="openTool('animal')">
-                        <i class="fa-solid fa-paw icon" style="color:#e17055;"></i>
+                    <div class="glass-card" onclick="openTool('animal')"><i class="fa-solid fa-paw icon"
+                            style="color:#e17055;"></i>
                         <h3>الحيوان الروحي</h3>
                     </div>
-                    <div class="glass-card" onclick="openTool('baby')">
-                        <i class="fa-solid fa-baby icon" style="color:#74b9ff;"></i>
+                    <div class="glass-card" onclick="openTool('baby')"><i class="fa-solid fa-baby icon"
+                            style="color:#74b9ff;"></i>
                         <h3>اسم طفلي</h3>
                     </div>
                 </div>
             </div>
 
-            <!-- MIND -->
             <div id="page-mind" class="page">
                 <h2 class="section-title">🧠 العقل والنفس</h2>
                 <div class="grid-menu">
-                    <div class="glass-card" onclick="openTool('dream')">
-                        <i class="fa-solid fa-moon icon" style="color:#a29bfe;"></i>
+                    <div class="glass-card" onclick="openTool('dream')"><i class="fa-solid fa-moon icon"
+                            style="color:#a29bfe;"></i>
                         <h3>مفسر الأحلام</h3>
                     </div>
-                    <div class="glass-card" onclick="openTool('personality')">
-                        <i class="fa-solid fa-fingerprint icon" style="color:#fab1a0;"></i>
+                    <div class="glass-card" onclick="openTool('personality')"><i class="fa-solid fa-fingerprint icon"
+                            style="color:#fab1a0;"></i>
                         <h3>تحليل الشخصية</h3>
                     </div>
-                    <div class="glass-card" onclick="openTool('decision')">
-                        <i class="fa-solid fa-scale-balanced icon" style="color:#dfe6e9;"></i>
+                    <div class="glass-card" onclick="openTool('decision')"><i class="fa-solid fa-scale-balanced icon"
+                            style="color:#dfe6e9;"></i>
                         <h3>محكمة القرار</h3>
                     </div>
                 </div>
             </div>
 
-            <!-- TOOLS -->
             <div id="page-tools" class="page">
                 <h2 class="section-title">🛠️ أدوات ذكية</h2>
                 <div class="grid-menu">
-                    <div class="glass-card" onclick="openTool('focus')">
-                        <i class="fa-solid fa-hourglass-half icon" style="color:#fd79a8;"></i>
+                    <div class="glass-card" onclick="openTool('focus')"><i class="fa-solid fa-hourglass-half icon"
+                            style="color:#fd79a8;"></i>
                         <h3>مؤقت التركيز</h3>
                     </div>
-                    <div class="glass-card" onclick="openTool('calculator')">
-                        <i class="fa-solid fa-calculator icon" style="color:#0984e3;"></i>
+                    <div class="glass-card" onclick="openTool('calculator')"><i class="fa-solid fa-calculator icon"
+                            style="color:#0984e3;"></i>
                         <h3>الحاسبة</h3>
                     </div>
-                    <div class="glass-card" onclick="openTool('stopwatch')">
-                        <i class="fa-solid fa-stopwatch icon" style="color:#d63031;"></i>
+                    <div class="glass-card" onclick="openTool('stopwatch')"><i class="fa-solid fa-stopwatch icon"
+                            style="color:#d63031;"></i>
                         <h3>ساعة الإيقاف</h3>
                     </div>
                 </div>
             </div>
 
-            <!-- GYM -->
             <div id="page-gym" class="page">
                 <h2 class="section-title">💪 النادي واللياقة</h2>
-
                 <div class="gym-panel">
                     <h3>⚖️ حساب كتلة الجسم (BMI)</h3>
                     <div class="input-group">
@@ -110,7 +112,6 @@
                     <button class="action-btn small-btn" onclick="calcBMI()">احسب</button>
                     <div id="bmi-result" class="result-box hidden"></div>
                 </div>
-
                 <div class="gym-panel">
                     <h3>🏋️‍♂️ جدول تمرين مقترح</h3>
                     <select id="muscle-group">
@@ -124,7 +125,6 @@
                 </div>
             </div>
 
-            <!-- GOALS -->
             <div id="page-goals" class="page">
                 <h2 class="section-title">✅ إنجازاتي اليومية</h2>
                 <div class="goals-container">
@@ -138,28 +138,18 @@
                     </div>
                 </div>
             </div>
-
-        </div> <!-- End Pages -->
+        </div>
 
         <nav class="bottom-nav">
-            <div class="nav-item active" onclick="switchPage('home')">
-                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                <span>ترفيه</span>
-            </div>
-            <div class="nav-item" onclick="switchPage('mind')">
-                <i class="fa-solid fa-brain"></i>
-                <span>النفس</span>
-            </div>
+            <div class="nav-item active" onclick="switchPage('home')"><i
+                    class="fa-solid fa-wand-magic-sparkles"></i><span>ترفيه</span></div>
+            <div class="nav-item" onclick="switchPage('mind')"><i class="fa-solid fa-brain"></i><span>النفس</span></div>
             <div class="nav-item" onclick="switchPage('goals')">
                 <div class="fab-circle"><i class="fa-solid fa-check"></i></div>
             </div>
-            <div class="nav-item" onclick="switchPage('gym')">
-                <i class="fa-solid fa-dumbbell"></i>
-                <span>الجيم</span>
+            <div class="nav-item" onclick="switchPage('gym')"><i class="fa-solid fa-dumbbell"></i><span>الجيم</span>
             </div>
-            <div class="nav-item" onclick="switchPage('tools')">
-                <i class="fa-solid fa-toolbox"></i>
-                <span>أدوات</span>
+            <div class="nav-item" onclick="switchPage('tools')"><i class="fa-solid fa-toolbox"></i><span>أدوات</span>
             </div>
         </nav>
 
@@ -174,11 +164,46 @@
             <div class="spinner"></div>
             <p>جارِ التحليل...</p>
         </div>
-
     </div>
 
-    <!-- Hidden Templates -->
+    <!-- TEMPLATES -->
     <div id="templates" style="display: none !important;">
+
+        <!-- Calculator (iOS Authentic) -->
+        <div id="tpl-calculator">
+            <div class="ios-calc-wrapper"> <!-- Dark Frame -->
+                <div class="ios-calc-container">
+                    <div class="calc-display-area">
+                        <input type="text" id="calc-display" readonly value="0">
+                    </div>
+                    <div class="ios-keys">
+                        <button class="btn-grey" onclick="clearCalc()">AC</button>
+                        <button class="btn-grey" onclick="toggleSign()">+/-</button>
+                        <button class="btn-grey" onclick="percent()">%</button>
+                        <button class="btn-orange" onclick="chooseOp('/')">÷</button>
+
+                        <button class="btn-dark" onclick="appendCalc('7')">7</button>
+                        <button class="btn-dark" onclick="appendCalc('8')">8</button>
+                        <button class="btn-dark" onclick="appendCalc('9')">9</button>
+                        <button class="btn-orange" onclick="chooseOp('*')">×</button>
+
+                        <button class="btn-dark" onclick="appendCalc('4')">4</button>
+                        <button class="btn-dark" onclick="appendCalc('5')">5</button>
+                        <button class="btn-dark" onclick="appendCalc('6')">6</button>
+                        <button class="btn-orange" onclick="chooseOp('-')">-</button>
+
+                        <button class="btn-dark" onclick="appendCalc('1')">1</button>
+                        <button class="btn-dark" onclick="appendCalc('2')">2</button>
+                        <button class="btn-dark" onclick="appendCalc('3')">3</button>
+                        <button class="btn-orange" onclick="chooseOp('+')">+</button>
+
+                        <button class="btn-dark span-2" onclick="appendCalc('0')">0</button>
+                        <button class="btn-dark" onclick="appendCalc('.')">.</button>
+                        <button class="btn-orange" onclick="calculate()">=</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Focus Timer -->
         <div id="tpl-focus">
@@ -195,64 +220,20 @@
                     <button onclick="startFocus()" class="action-btn" style="background:#0984e3">ابدأ التركيز</button>
                     <button onclick="stopFocus()" class="action-btn" style="background:#e74c3c">إيقاف</button>
                 </div>
-                <!-- Noise Controls -->
                 <div class="noise-controls">
                     <div style="text-align:center;">
-                        <button class="noise-btn" id="btn-rain" onclick="toggleNoise('rain')">
-                            <i class="fa-solid fa-cloud-rain"></i>
-                        </button>
-                        <span>مطر</span>
+                        <button class="noise-btn" id="btn-rain" onclick="toggleNoise('rain')"><i
+                                class="fa-solid fa-cloud-rain"></i></button><span>مطر</span>
                     </div>
                     <div style="text-align:center;">
-                        <button class="noise-btn" id="btn-fire" onclick="toggleNoise('fire')">
-                            <i class="fa-solid fa-fire"></i>
-                        </button>
-                        <span>نار</span>
+                        <button class="noise-btn" id="btn-fire" onclick="toggleNoise('fire')"><i
+                                class="fa-solid fa-fire"></i></button><span>نار</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Calculator (iOS Style) -->
-        <div id="tpl-calculator">
-            <div class="ios-calc-container">
-                <div class="calc-display-area">
-                    <input type="text" id="calc-display" readonly value="0">
-                </div>
-                <div class="ios-keys">
-                    <!-- Row 1 -->
-                    <button class="btn-grey" onclick="clearCalc()">AC</button>
-                    <button class="btn-grey" onclick="toggleSign()">+/-</button>
-                    <button class="btn-grey" onclick="percent()">%</button>
-                    <button class="btn-orange" onclick="chooseOp('/')">÷</button>
-
-                    <!-- Row 2 -->
-                    <button class="btn-dark" onclick="appendCalc('7')">7</button>
-                    <button class="btn-dark" onclick="appendCalc('8')">8</button>
-                    <button class="btn-dark" onclick="appendCalc('9')">9</button>
-                    <button class="btn-orange" onclick="chooseOp('*')">×</button>
-
-                    <!-- Row 3 -->
-                    <button class="btn-dark" onclick="appendCalc('4')">4</button>
-                    <button class="btn-dark" onclick="appendCalc('5')">5</button>
-                    <button class="btn-dark" onclick="appendCalc('6')">6</button>
-                    <button class="btn-orange" onclick="chooseOp('-')">-</button>
-
-                    <!-- Row 4 -->
-                    <button class="btn-dark" onclick="appendCalc('1')">1</button>
-                    <button class="btn-dark" onclick="appendCalc('2')">2</button>
-                    <button class="btn-dark" onclick="appendCalc('3')">3</button>
-                    <button class="btn-orange" onclick="chooseOp('+')">+</button>
-
-                    <!-- Row 5 -->
-                    <button class="btn-dark span-2" onclick="appendCalc('0')">0</button>
-                    <button class="btn-dark" onclick="appendCalc('.')">.</button>
-                    <button class="btn-orange" onclick="calculate()">=</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Existing Templates preserved -->
+        <!-- Original Templates -->
         <div id="tpl-love">
             <h2>❤️ الحب</h2><input type="text" id="name1" placeholder="اسمك"><input type="text" id="name2"
                 placeholder="الشريك"><button class="action-btn" onclick="calculateLove()">احسب</button>
@@ -308,7 +289,6 @@
                 <button onclick="resetTimer()" class="action-btn" style="background:#95a5a6">Reset</button>
             </div>
         </div>
-
     </div>
 
     <script src="script.js"></script>
