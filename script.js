@@ -1112,10 +1112,11 @@ async function sendToGroq(chatMessages, currentMessage) {
 }
 
 async function sendToGroqVision(text, imageDataUrl) {
-    // Groq Vision models - llama-3.2-vision is excellent for image analysis
+    // Groq Vision models - Updated Jan 2025 (old preview models deprecated)
     const VISION_MODELS = [
-        'llama-3.2-90b-vision-preview',   // Best quality
-        'llama-3.2-11b-vision-preview',   // Faster, still good
+        'meta-llama/llama-4-scout-17b-16e-instruct',  // Llama 4 Scout - newest
+        'meta-llama/llama-4-maverick-17b-128e-instruct', // Llama 4 Maverick
+        'llama-3.2-90b-vision-preview',   // Fallback if available
     ];
 
     let lastError = null;
