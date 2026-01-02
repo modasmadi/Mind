@@ -8,6 +8,7 @@
     --border: rgba(255, 255, 255, 0.1);
     --nav-bg: rgba(20, 20, 20, 0.95);
     --success: #2ecc71;
+    --danger: #e74c3c;
 }
 
 body {
@@ -16,10 +17,19 @@ body {
     font-family: 'Tajawal', sans-serif;
     margin: 0;
     padding: 0;
-    /* Full screen */
     min-height: 100vh;
     overflow-x: hidden;
     background: radial-gradient(circle at top center, #1a0b2e 0%, #000000 70%);
+}
+
+/* UTILITY CLASSES */
+.hidden {
+    display: none !important;
+}
+
+/* FIXED: This was missing! */
+.center {
+    text-align: center;
 }
 
 .stars,
@@ -59,8 +69,7 @@ body {
 .app-container {
     max-width: 600px;
     margin: 0 auto;
-    padding-bottom: 80px;
-    /* Space for Bottom Nav */
+    padding-bottom: 90px;
     min-height: 100vh;
     position: relative;
 }
@@ -199,7 +208,6 @@ body {
     color: var(--accent);
 }
 
-/* FAB Circle for Center Item */
 .fab-circle {
     background: var(--primary);
     width: 50px;
@@ -210,7 +218,6 @@ body {
     justify-content: center;
     color: white;
     margin-top: -30px;
-    /* Uplift */
     box-shadow: 0 0 20px rgba(142, 68, 173, 0.5);
     border: 4px solid var(--dark);
 }
@@ -231,12 +238,11 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    /* Sheet style */
     z-index: 200;
 }
 
 .modal.hidden {
-    display: none;
+    display: none !important;
 }
 
 .modal-content {
@@ -371,7 +377,7 @@ textarea {
 
 .goal-item i {
     margin-left: 10px;
-    color: var(--gray);
+    color: #777;
 }
 
 .goal-item.done i {
@@ -420,4 +426,39 @@ textarea {
     padding: 15px;
     border-radius: 10px;
     text-align: center;
+}
+
+/* Focus Timer Styles (NEW) */
+.focus-timer {
+    text-align: center;
+    padding: 20px;
+}
+
+.focus-display {
+    font-size: 4rem;
+    font-weight: bold;
+    color: var(--accent);
+    margin: 20px 0;
+    font-family: monospace;
+}
+
+.quick-select {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.quick-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
+    color: #ccc;
+    padding: 5px 15px;
+    border-radius: 15px;
+    cursor: pointer;
+}
+
+.quick-btn:hover {
+    background: var(--primary);
+    color: white;
 }

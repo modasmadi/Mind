@@ -17,7 +17,6 @@
 
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;500;700;900&display=swap" rel="stylesheet">
-    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
@@ -89,6 +88,10 @@
             <div id="page-tools" class="page">
                 <h2 class="section-title">🛠️ أدوات ذكية</h2>
                 <div class="grid-menu">
+                    <div class="glass-card" onclick="openTool('focus')">
+                        <i class="fa-solid fa-hourglass-half icon" style="color:#fd79a8;"></i>
+                        <h3>مؤقت التركيز</h3>
+                    </div>
                     <div class="glass-card" onclick="openTool('calculator')">
                         <i class="fa-solid fa-calculator icon" style="color:#0984e3;"></i>
                         <h3>الحاسبة</h3>
@@ -100,7 +103,7 @@
                 </div>
             </div>
 
-            <!-- Page 4: Gym (NEW) -->
+            <!-- Page 4: Gym -->
             <div id="page-gym" class="page">
                 <h2 class="section-title">💪 النادي واللياقة</h2>
 
@@ -129,17 +132,15 @@
                 </div>
             </div>
 
-            <!-- Page 5: Goals (NEW) -->
+            <!-- Page 5: Goals -->
             <div id="page-goals" class="page">
                 <h2 class="section-title">✅ إنجازاتي اليومية</h2>
                 <div class="goals-container">
                     <div class="add-goal-box">
-                        <input type="text" id="new-goal-text" placeholder="ما هدفك لليوم؟ (مثلاً: قراءة صفحتين)">
+                        <input type="text" id="new-goal-text" placeholder="ما هدفك لليوم؟">
                         <button onclick="addGoal()" class="plus-btn"><i class="fa-solid fa-plus"></i></button>
                     </div>
-                    <ul id="goals-list">
-                        <!-- Goals will appear here -->
-                    </ul>
+                    <ul id="goals-list"></ul>
                     <div id="empty-state" class="empty-goals">
                         <p>يومك صفحة بيضاء.. اكتب إنجازك الأول! 🚀</p>
                     </div>
@@ -159,7 +160,7 @@
                 <span>النفس</span>
             </div>
             <div class="nav-item" onclick="switchPage('goals')">
-                <div class="fab-circle"><i class="fa-solid fa-check"></i></div> <!-- Featured Item -->
+                <div class="fab-circle"><i class="fa-solid fa-check"></i></div>
             </div>
             <div class="nav-item" onclick="switchPage('gym')">
                 <i class="fa-solid fa-dumbbell"></i>
@@ -171,7 +172,7 @@
             </div>
         </nav>
 
-        <!-- Tool Modals (Popups for Entertainment/Tools) -->
+        <!-- Tool Modal -->
         <div id="tool-modal" class="modal hidden">
             <div class="modal-content">
                 <button class="close-modal" onclick="closeTool()">✕</button>
@@ -187,13 +188,26 @@
 
     </div> <!-- End App Container -->
 
-    <!-- Load content for Modals dynamically to keep HTML clean? 
-         No, let's keep simple structures hidden and clone them. 
-         ACTUALLY: For simplicity, I will re-inject the specific tool sections 
-         inside the modal scripts or keep them as template blocks below. -->
-
     <!-- TEMPLATES FOR TOOLS (Hidden) -->
-    <div id="templates" class="hidden">
+    <div id="templates" style="display: none !important;">
+
+        <!-- Focus Timer Template (NEW) -->
+        <div id="tpl-focus">
+            <h2>⏳ مؤقت التركيز (للدراسة)</h2>
+            <div class="focus-timer">
+                <div class="quick-select">
+                    <button class="quick-btn" onclick="setFocusTime(25)">25 د</button>
+                    <button class="quick-btn" onclick="setFocusTime(45)">45 د</button>
+                    <button class="quick-btn" onclick="setFocusTime(60)">60 د</button>
+                </div>
+                <input type="number" id="focus-input" placeholder="دقائق مخصصة" style="text-align:center;">
+                <div id="focus-display" class="focus-display">00:00</div>
+                <div class="timer-controls">
+                    <button onclick="startFocus()" class="action-btn" style="background:#0984e3">ابدأ التركيز</button>
+                    <button onclick="stopFocus()" class="action-btn" style="background:#ff7675">إيقاف</button>
+                </div>
+            </div>
+        </div>
 
         <!-- Love Template -->
         <div id="tpl-love">
