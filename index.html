@@ -270,31 +270,34 @@
         </div>
 
         <!-- NEW: AI Chat Template -->
+        <!-- NEW: AI Chat Template (ChatGPT Style) -->
         <div id="tpl-ai-chat">
-            <div class="chat-header">
-                <h2>🤖 المساعد الذكي</h2>
-                <span class="status-dot"></span>
-            </div>
-
-            <div id="chat-messages" class="chat-messages">
-                <div class="message ai-message">
-                    <div class="msg-content">أهلاً بك! أنا مساعدك الذكي. يمكنك سؤالي عن أي شيء أو إرسال صور لتحليلها.
-                        كيف أساعدك اليوم؟</div>
+            <div class="chat-container-wrapper">
+                <div class="chat-header">
+                    <h2>🤖 المساعد الذكي</h2>
                 </div>
-            </div>
 
-            <div class="chat-input-area">
-                <div id="image-preview" class="hidden">
-                    <img id="preview-img" src="" alt="preview">
-                    <button onclick="clearImage()" class="remove-img">✕</button>
+                <div id="chat-messages" class="chat-messages">
+                    <div class="message ai-message">
+                        <div class="msg-avatar">🤖</div>
+                        <div class="msg-content">أهلاً! أنا هنا لمساعدتك. اسألني عن أي شيء أو أرسل صورة لتحليلها..</div>
+                    </div>
                 </div>
-                <div class="input-row">
-                    <label for="file-upload" class="attach-btn"><i class="fa-solid fa-paperclip"></i></label>
-                    <input type="file" id="file-upload" accept="image/*" class="hidden"
-                        onchange="handleImageUpload(this)">
-                    <input type="text" id="chat-input" placeholder="اكتب رسالتك هنا..." onkeypress="handleEnter(event)">
-                    <button class="send-btn" onclick="sendChatMessage()"><i
-                            class="fa-solid fa-paper-plane"></i></button>
+
+                <div class="chat-input-area">
+                    <div id="image-preview" class="hidden">
+                        <img id="preview-img" src="" alt="preview" style="height: 50px;">
+                        <button onclick="clearImage()" class="remove-img" style="top:-5px; right:-5px;">✕</button>
+                    </div>
+                    <div class="input-wrapper">
+                        <label for="file-upload" class="action-icon-btn"><i class="fa-solid fa-paperclip"></i></label>
+                        <input type="file" id="file-upload" accept="image/*" class="hidden"
+                            onchange="handleImageUpload(this)">
+                        <textarea id="chat-input" placeholder="أرسل رسالة..."
+                            onkeypress="handleEnter(event)"></textarea>
+                        <button class="action-icon-btn send-btn-icon" onclick="sendChatMessage()"><i
+                                class="fa-solid fa-paper-plane"></i></button>
+                    </div>
                 </div>
             </div>
         </div>
