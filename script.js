@@ -262,3 +262,85 @@ window.closeTool = function () {
     stopBreathing();
     if (originalCloseTool) originalCloseTool();
 };
+
+// --- AI JOURNAL (Gemini) ---
+const GEMINI_API_KEY = "AIzaSyCO3_GJso855AiYzwVpkG5oMOUi82ED8cs"; // Hardcoded by User Request
+
+window.checkApiKey = function () {
+    // Always consider it setup since we have the key
+    const setup = document.getElementById('ai-setup');
+    const main = document.getElementById('ai-main');
+    if (!setup || !main) return;
+
+    // Hide setup, show main immediately
+    setup.classList.add('hidden');
+    main.classList.remove('hidden');
+};
+
+window.saveApiKey = function () {
+    // No longer needed, but kept to prevent errors if clicked
+    alert("المفتاح مضاف مسبقاً في الكود!");
+};
+
+// Hook into openTool to check API key when opening journal
+const originalOpenTool = window.openTool;
+window.openTool = function (name) {
+    if (originalOpenTool) originalOpenTool(name);
+    if (name === 'ai-journal') {
+        setTimeout(checkApiKey, 100);
+    }
+};
+
+window.analyzeJournal = async function () {
+    const text = document.getElementById('journal-input').value;
+    if (!text || text.length < 5) { alert("اكتب شيئاً أكثر تفصيلاً..."); return; }
+
+    const btn = document.getElementById('analyze-btn');
+    const loading = document.getElementById('ai-loading');
+    const result = document.getElementById('ai-result');
+    // Uses the hardcoded key
+    const apiKey = GEMINI_API_KEY;
+
+    btn.classList.add('hidden');
+    loading.classList.remove('hidden');
+    result.classList.add('hidden');
+
+    const prompt = `
+    أنت طبيب نفسي ومستشار حياة إيجابي.
+    المستخدم كتب هذا في مذكرته: "${text}"
+    
+    المطلوب منك الرد بتنسيق HTML بسيط (بدون markdown) يحتوي على ثلاثة أقسام:
+    1. <h4>📊 تحليل الحالة:</h4> (وصف قصير جداً لحالته النفسية)
+    2. <h4>💡 نصيحة:</h4> (نصيحة عملية وإيجابية)
+    3. <h4>✨ توكيد يومي:</h4> (جملة قصيرة يكررها)
+    
+    اجعل اللهجة ودودة، مشجعة، وباللغة العربية الفصحى البسيطة.`;
+
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            throw new Error(data.error.message);
+        }
+
+        const aiText = data.candidates[0].content.parts[0].text;
+        // Clean markdown if present
+        const cleanText = aiText.replace(/```html/g, '').replace(/```/g, '');
+
+        result.innerHTML = cleanText;
+        result.classList.remove('hidden');
+    } catch (e) {
+        alert("حدث خطأ في الاتصال: " + e.message);
+    } finally {
+        loading.classList.add('hidden');
+        btn.classList.remove('hidden');
+    }
+};

@@ -127,6 +127,10 @@
                             style="color:#00b894;"></i>
                         <h3>تمرين التنفس</h3>
                     </div>
+                    <div class="glass-card span-2" onclick="openTool('ai-journal')"><i
+                            class="fa-solid fa-wand-magic-sparkles icon" style="color:#a29bfe;"></i>
+                        <h3>المذكرة الذكية (AI)</h3>
+                    </div>
                 </div>
             </div>
 
@@ -250,6 +254,19 @@
                     style="background:#e74c3c">Stop</button><button onclick="resetTimer()" class="action-btn"
                     style="background:#95a5a6">Reset</button></div>
         </div>
+    </div>
+    <div id="tpl-breathing">
+        <h2>🧘‍♂️ تمرين التنفس</h2>
+        <div class="breathing-container">
+            <div class="circle-container">
+                <div class="circle"></div>
+                <div class="gradient-circle"></div>
+                <p id="breath-text">جاهز؟</p>
+            </div>
+            <div class="breath-instruction" id="breath-instruction">استرخي وتنفس بعمق...</div>
+            <button class="action-btn" id="breath-btn" onclick="toggleBreathing()">ابدأ التمرين</button>
+        </div>
+    </div>
     </div>
 
     <script src="script.js"></script>
