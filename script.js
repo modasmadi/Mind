@@ -182,3 +182,83 @@ function renderGoals() { const l = document.getElementById('goals-list'); if (!l
 function getVal(id) { const e = getModalElement('#' + id); return e ? e.value : ''; }
 function getModalElement(s) { const m = document.getElementById('modal-body'); return m ? m.querySelector(s) : document.querySelector(s); }
 function setModalHtml(id, h) { const e = getModalElement('#' + id); if (e) { e.innerHTML = h; e.classList.remove('hidden'); } }
+
+// Breathing Exercise
+let breathInterval;
+let isBreathing = false;
+
+window.toggleBreathing = function () {
+    const btn = document.getElementById('breath-btn');
+    if (isBreathing) {
+        stopBreathing();
+        btn.innerText = "ابدأ التمرين";
+        btn.style.background = "var(--primary)";
+    } else {
+        startBreathing();
+        btn.innerText = "إيقاف";
+        btn.style.background = "#e74c3c";
+    }
+};
+
+function startBreathing() {
+    isBreathing = true;
+    const container = document.querySelector('.circle-container');
+    const text = document.getElementById('breath-text');
+    const instruction = document.getElementById('breath-instruction');
+
+    // Initial State
+    text.innerText = "شهيق";
+    instruction.innerText = "تنفس ببطء وعمق...";
+    container.className = 'circle-container grow';
+
+    breathAnimation();
+    breathInterval = setInterval(breathAnimation, 12000); // 4 in, 4 hold, 4 out = 12s cycle changed to: 4 in, 4 hold, 4 out logic needs careful timing.
+    // Let's do a simpler cycle: 4s Inhale, 4s Hold, 4s Exhale
+    // CSS animations are 4s.
+}
+
+function breathAnimation() {
+    if (!isBreathing) return;
+    const container = document.querySelector('.circle-container');
+    const text = document.getElementById('breath-text');
+    const instruction = document.getElementById('breath-instruction');
+
+    // Inhale (4s)
+    text.innerText = "شهيق";
+    instruction.innerText = "استنشق الهواء عبر أنفك...";
+    container.className = 'circle-container grow';
+
+    setTimeout(() => {
+        if (!isBreathing) return;
+        // Hold (4s)
+        text.innerText = "احبس";
+        instruction.innerText = "احتفظ بالهواء في صدرك...";
+
+        setTimeout(() => {
+            if (!isBreathing) return;
+            // Exhale (4s)
+            text.innerText = "زفير";
+            instruction.innerText = "أخرج الهواء ببطء من فمك...";
+            container.className = 'circle-container shrink';
+        }, 4000);
+
+    }, 4000);
+}
+
+function stopBreathing() {
+    isBreathing = false;
+    clearInterval(breathInterval);
+    breathInterval = null;
+    const container = document.querySelector('.circle-container');
+    const text = document.getElementById('breath-text');
+
+    if (container) container.className = 'circle-container';
+    if (text) text.innerText = "جاهز؟";
+}
+
+// Hook into closeTool to stop breathing manually
+const originalCloseTool = window.closeTool;
+window.closeTool = function () {
+    stopBreathing();
+    if (originalCloseTool) originalCloseTool();
+};
