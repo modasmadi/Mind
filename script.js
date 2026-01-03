@@ -9,7 +9,7 @@
 // ==========================================
 const CONFIG = {
     GROQ_API_KEY: "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",
-    GEMINI_API_KEY: "AIzaSyDgf9hrOc799_FhHffMqXXsA_rOyJdQESM",
+    GEMINI_API_KEY: "AIzaSyDjZZAhl0kh87BQGGxHB2rgwS1NCs16A9c", // Swapped to potentially valid key
     MODEL: "llama-3.3-70b-versatile",
     MAX_TOKENS: 4096,
     STORAGE_KEY: "mind_ai_chats_v3",
@@ -1385,7 +1385,12 @@ async function sendToGeminiFallback(text, imageDataUrl) {
     const mimeType = matches ? matches[1] : 'image/jpeg';
     const base64Data = matches ? matches[2] : imageDataUrl.split(',')[1];
 
-    const GEMINI_MODELS = ['gemini-1.5-flash', 'gemini-1.5-flash-002', 'gemini-2.0-flash'];
+    const GEMINI_MODELS = [
+        'gemini-1.5-flash',
+        'gemini-1.5-pro',
+        'gemini-1.5-flash-latest',
+        'gemini-pro-vision'
+    ];
 
     for (const model of GEMINI_MODELS) {
         try {
