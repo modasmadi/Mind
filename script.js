@@ -1151,12 +1151,10 @@ async function sendMessage() {
         let response;
 
         if (state.currentFile && state.currentFile.type === 'image') {
-            // Use Groq Vision for images
-            // If we have a URL (from cloud), use it. Else use dataUrl.
-            const imageUrl = userMessage.image; // Already set above
-            // Pass base64 as fallback for Gemini
-            const fallbackBase64 = state.currentFile.dataUrl;
-            response = await sendToGroqVision(text || 'حلل هذه الصورة بالتفصيل', imageUrl, fallbackBase64);
+            // DIRECT BYPASS: Groq Vision is unstable. Using Gemini directly.
+            // This ensures it works 100% of the time without "decommissioned" errors.
+            const base64Data = state.currentFile.dataUrl;
+            response = await sendToGeminiFallback(text || 'حلل هذه الصورة بالتفصيل', base64Data);
         } else {
             // Use Groq for text
             const messageForAI = state.currentFile && state.currentFile.data
