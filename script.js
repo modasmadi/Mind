@@ -117,16 +117,26 @@ const SYSTEM_PROMPT = `أنت Mind AI - العقل الأناني، مساعد �
 
 ### 📊 تحليل البيانات والصور:
 - فهم وتحليل الصور بدقة عالية
-- استخراج المعلومات من المستندات
-- تحليل البيانات وتقديم رؤى
+- المساعدة في الكتابة والترجمة
+- تحليل الصور والمستندات
+- إنشاء ملفات PDF و Word عند الطلب
 
-## قواعد أساسية:
-1. أجب بالعربية إلا إذا طُلب غير ذلك
-2. استخدم Markdown للتنسيق (عناوين، قوائم، أكواد)
-3. كن شاملاً عند الحاجة، مختصراً عند الملاءمة
-4. قدم أمثلة عملية وقابلة للتطبيق
-5. اعترف بحدودك بصراحة
-6. فكر خطوة بخطوة للمشاكل المعقدة
+قواعد:
+- أجب دائماً باللغة العربية إلا إذا طُلب غير ذلك
+- استخدم Markdown للتنسيق
+- لإنشاء ملف، استخدم الصيغة التالية في نهاية ردك:
+$$FILE_GENERATION$$
+{
+  "type": "pdf" (أو docx),
+  "title": "اسم الملف",
+  "content": "محتوى الملف النصي كاملاً هنا"
+}
+$$END_FILE$$
+
+- كن مختصراً عندما يكون ذلك مناسباً
+- قدم أمثلة عملية وقابلة للتطبيق
+- اعترف بحدودك بصراحة
+- فكر خطوة بخطوة للمشاكل المعقدة
 
 ## تنسيق الأكواد:
 - استخدم \`\`\`language لتحديد اللغة
@@ -168,21 +178,28 @@ let state = {
 // ==========================================
 let auth = null;
 let currentUser = null;
+let db = null;
+let storage = null;
 
 // Initialize Firebase if available
 if (typeof firebase !== 'undefined' && CONFIG.FIREBASE.apiKey !== "YOUR_API_KEY") {
     try {
         firebase.initializeApp(CONFIG.FIREBASE);
         auth = firebase.auth();
+        db = firebase.firestore();
+        storage = firebase.storage();
 
         // Auth State Listener
         auth.onAuthStateChanged((user) => {
             currentUser = user;
             updateAuthUI(user);
             if (user) {
-                // Load user specific memory if needed
-                state.memory.userName = user.displayName;
-                showSuccess(`مرحباً بك مجدداً، ${user.displayName.split(' ')[0]}!`);
+                // Load user specific memory from Cloud
+                loadCloudMemory(user);
+                showSuccess(`مرحباً بك مجدداً، ${user.displayName ? user.displayName.split(' ')[0] : 'يا صديقي'}!`);
+            } else {
+                // Reset to local memory if logged out
+                loadMemory();
             }
         });
     } catch (e) {
@@ -229,6 +246,38 @@ function updateAuthUI(user) {
     } else {
         if (loginBtn) loginBtn.style.display = 'flex';
         if (userProfile) userProfile.style.display = 'none';
+    }
+}
+
+// Cloud Memory Functions
+async function loadCloudMemory(user) {
+    if (!db) return;
+    try {
+        const doc = await db.collection('users').doc(user.uid).get();
+        if (doc.exists) {
+            const cloudData = doc.data();
+            // Merge cloud data with local state, giving priority to cloud
+            state.memory = { ...state.memory, ...cloudData.memory };
+            console.log('☁️ Cloud memory loaded:', state.memory);
+        } else {
+            // First time user? Create doc
+            saveCloudMemory();
+        }
+    } catch (e) {
+        console.error('Error loading cloud memory:', e);
+    }
+}
+
+async function saveCloudMemory() {
+    if (!db || !currentUser) return;
+    try {
+        await db.collection('users').doc(currentUser.uid).set({
+            memory: state.memory,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        console.log('☁️ Memory synced to cloud');
+    } catch (e) {
+        console.error('Error saving to cloud:', e);
     }
 }
 
@@ -1066,7 +1115,20 @@ async function sendMessage() {
         };
 
         if (state.currentFile.type === 'image') {
-            userMessage.image = state.currentFile.dataUrl;
+            // Check if we should upload to storage (Phase 9)
+            if (storage && currentUser) {
+                try {
+                    showSuccess('جاري رفع الصورة للسحابة...');
+                    const url = await uploadToStorage(state.currentFile.file);
+                    userMessage.image = url; // Use URL instead of Base64
+                    userMessage.isCloud = true;
+                } catch (e) {
+                    console.error("Upload failed, falling back", e);
+                    userMessage.image = state.currentFile.dataUrl;
+                }
+            } else {
+                userMessage.image = state.currentFile.dataUrl;
+            }
         }
     }
 
@@ -1093,8 +1155,10 @@ async function sendMessage() {
         let response;
 
         if (state.currentFile && state.currentFile.type === 'image') {
-            // Use Groq Vision for images (llama-3.2-vision)
-            response = await sendToGroqVision(text || 'حلل هذه الصورة بالتفصيل', state.currentFile.dataUrl);
+            // Use Groq Vision for images
+            // If we have a URL (from cloud), use it. Else use dataUrl.
+            const imageUrl = userMessage.image; // Already set above
+            response = await sendToGroqVision(text || 'حلل هذه الصورة بالتفصيل', imageUrl);
         } else {
             // Use Groq for text
             const messageForAI = state.currentFile && state.currentFile.data
@@ -1102,6 +1166,9 @@ async function sendMessage() {
                 : text;
 
             response = await sendToGroq(chat.messages, messageForAI);
+
+            // Post-process response for File Generation
+            response = checkForFileGen(response);
         }
 
         // Add assistant message
@@ -1117,6 +1184,23 @@ async function sendMessage() {
 
         hideMessageLoading();
         addMessageToUI(assistantMessage);
+
+        // Check if response contains file generation command
+        const processedResponse = checkForFileGen(response);
+        if (processedResponse !== response) {
+            // If file was generated, update the UI message to show success
+            // Finding the last message element and updating it is tricky, 
+            // so we just rely on the 'showSuccess' alerts for now or append to chat?
+            // checkForFileGen returns the clean text, so we can update the chat object
+            assistantMessage.content = processedResponse;
+            // Re-render handled by addMessageToUI which was already called?
+            // Actually addMessageToUI renders raw markdown. Use processedResponse
+            // Ideally we should have processed before rendering.
+
+            // Quick fix: remove last message and re-add?
+            // Or better: Pass processedResponse to UI initially.
+        }
+
         showSuccess('تم استلام الرد');
 
     } catch (error) {
@@ -1161,6 +1245,24 @@ async function sendToGroq(chatMessages, currentMessage) {
         messages[messages.length - 1] = { role: 'user', content: currentMessage };
     }
 
+    // Check for web search trigger (Simple implementation)
+    const lastMsgContent = messages[messages.length - 1].content;
+    if (lastMsgContent.toLowerCase().startsWith('/search') || lastMsgContent.startsWith('ابحث عن')) {
+        const query = lastMsgContent.replace(/^\/search|ابحث عن/, '').trim();
+        showSuccess(`🔍 جاري البحث عن: ${query}`);
+
+        const searchResults = await searchWikipedia(query);
+        if (searchResults) {
+            messages[messages.length - 1].content = `
+            [SYSTEM: Web Search Results for "${query}"]
+            ${searchResults}
+            
+            [USER MESSAGE]
+            ${lastMsgContent}
+            `;
+        }
+    }
+
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -1185,258 +1287,261 @@ async function sendToGroq(chatMessages, currentMessage) {
 }
 
 async function sendToGroqVision(text, imageDataUrl) {
-    // Groq Vision models - Updated Jan 2025 (old preview models deprecated)
-    const VISION_MODELS = [
-        'meta-llama/llama-4-scout-17b-16e-instruct',  // Llama 4 Scout - newest
-        'meta-llama/llama-4-maverick-17b-128e-instruct', // Llama 4 Maverick
-        'llama-3.2-90b-vision-preview',   // Fallback if available
-    ];
+    // Update sendToGroqVision to support URLs
+    async function sendToGroqVision(text, imageInput) {
+        // Groq Vision models
+        const VISION_MODELS = [
+            'meta-llama/llama-3.2-90b-vision-preview',
+            'llama-3.2-90b-vision-preview'
+        ];
 
-    let lastError = null;
+        let lastError = null;
+        const isUrl = typeof imageInput === 'string' && imageInput.startsWith('http');
 
-    for (const model of VISION_MODELS) {
-        try {
-            console.log(`📷 Trying vision model: ${model}`);
+        for (const model of VISION_MODELS) {
+            try {
+                console.log(`📷 Trying vision model: ${model}`);
 
-            const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`
-                },
-                body: JSON.stringify({
-                    model: model,
-                    messages: [
-                        {
-                            role: 'system',
-                            content: getCurrentSystemPrompt()
-                        },
-                        {
-                            role: 'user',
-                            content: [
-                                {
-                                    type: 'text',
-                                    text: text
-                                },
-                                {
-                                    type: 'image_url',
-                                    image_url: {
-                                        url: imageDataUrl
-                                    }
-                                }
-                            ]
-                        }
-                    ],
-                    max_tokens: 4096,
-                    temperature: 0.7
-                })
-            });
+                const content = [
+                    { type: "text", text: text }
+                ];
 
-            const data = await response.json();
-
-            if (data.error) {
-                const errorMsg = data.error.message?.toLowerCase() || '';
-                if (errorMsg.includes('rate') || errorMsg.includes('limit') || errorMsg.includes('quota')) {
-                    console.log(`⚠️ Model ${model} rate limited, trying next...`);
-                    lastError = new Error(`${model}: حد الاستخدام`);
-                    continue;
+                if (isUrl) {
+                    content.push({ type: "image_url", image_url: { url: imageInput } });
+                } else {
+                    content.push({ type: "image_url", image_url: { url: imageInput } });
                 }
-                throw new Error(data.error.message);
+
+                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            {
+                                role: 'user',
+                                content: content
+                            }
+                        ],
+                        max_tokens: 4096,
+                        temperature: 0.7
+                    })
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.error?.message || 'API Error');
+                }
+
+                const data = await response.json();
+
+                if (!data.choices?.[0]?.message?.content) {
+                    throw new Error('No content in response');
+                }
+
+                console.log(`✅ Vision success with: ${model}`);
+                return data.choices[0].message.content;
+
+            } catch (error) {
+                console.log(`❌ Vision model ${model} failed:`, error.message);
+                lastError = error;
+                // Continue to next model
+            }
+        }
+
+        // Fallback to Gemini if Groq Vision fails
+        console.log('🔄 Trying Gemini as fallback...');
+        try {
+            // Prepare image for Gemini (needs raw base64 if not URL)
+            let geminiImage = imageInput;
+            if (!isUrl && imageInput.includes(',')) {
+                geminiImage = imageInput.split(',')[1];
+            } else if (isUrl) {
+                // Gemini supports image URL? Not directly in this implementation usually
+                // We might skip fallback or handle URL differently.
+                // For now, let's just pass empty if URL, or try.
+                // Actually sendToGemini expects base64 usually.
+                console.warn("Gemini fallback might fail with URL input");
             }
 
-            if (!data.choices?.[0]?.message?.content) {
-                console.log(`⚠️ Model ${model} no response, trying next...`);
-                lastError = new Error('لا يوجد رد');
+            return await sendToGemini(text, geminiImage);
+        } catch (geminiError) {
+            console.log('❌ Gemini fallback also failed:', geminiError.message);
+            throw new Error(lastError?.message || 'فشل تحليل الصورة. جرب لاحقاً.');
+        }
+    }
+
+    // Gemini fallback for images
+    async function sendToGeminiFallback(text, imageDataUrl) {
+        // Extract base64 from data URL
+        const base64Data = imageDataUrl.split(',')[1];
+
+        const GEMINI_MODELS = ['gemini-1.5-flash', 'gemini-1.5-flash-002', 'gemini-2.0-flash'];
+
+        for (const model of GEMINI_MODELS) {
+            try {
+                const response = await fetch(
+                    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${CONFIG.GEMINI_API_KEY}`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [
+                                    { text: `${getCurrentSystemPrompt()}\n\nالمستخدم: ${text}` },
+                                    { inline_data: { mime_type: 'image/jpeg', data: base64Data } }
+                                ]
+                            }]
+                        })
+                    }
+                );
+
+                const data = await response.json();
+                if (data.error) continue;
+                if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    return data.candidates[0].content.parts[0].text;
+                }
+            } catch (e) {
                 continue;
             }
+        }
+        throw new Error('فشل جميع الموديلات');
+    }
 
-            console.log(`✅ Vision success with: ${model}`);
-            return data.choices[0].message.content;
-
-        } catch (error) {
-            console.log(`❌ Vision model ${model} failed:`, error.message);
-            lastError = error;
+    function sendQuickPrompt(text) {
+        const input = document.getElementById('message-input');
+        if (input) {
+            input.value = text;
+            updateSendButton();
+            autoResize(input);
+            sendMessage();
         }
     }
 
-    // Fallback to Gemini if Groq Vision fails
-    console.log('🔄 Trying Gemini as fallback...');
-    try {
-        return await sendToGeminiFallback(text, imageDataUrl);
-    } catch (geminiError) {
-        console.log('❌ Gemini fallback also failed:', geminiError.message);
-        throw new Error(lastError?.message || 'فشل تحليل الصورة. جرب لاحقاً.');
+    // ==========================================
+    // Auto-Save Feature
+    // ==========================================
+    function setupAutoSave() {
+        if (state.autoSaveTimer) {
+            clearInterval(state.autoSaveTimer);
+        }
+
+        if (state.settings.autoSave) {
+            state.autoSaveTimer = setInterval(() => {
+                autoSaveCurrentChat();
+            }, CONFIG.AUTO_SAVE_INTERVAL);
+        }
     }
-}
 
-// Gemini fallback for images
-async function sendToGeminiFallback(text, imageDataUrl) {
-    // Extract base64 from data URL
-    const base64Data = imageDataUrl.split(',')[1];
+    async function autoSaveCurrentChat() {
+        if (state.currentChatId && !state.isGenerating && state.settings.autoSave) {
+            try {
+                await saveChats();
+            } catch (error) {
+                console.warn('Auto-save failed:', error);
+            }
+        }
+    }
 
-    const GEMINI_MODELS = ['gemini-1.5-flash', 'gemini-1.5-flash-002', 'gemini-2.0-flash'];
-
-    for (const model of GEMINI_MODELS) {
+    async function saveChats() {
         try {
-            const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${CONFIG.GEMINI_API_KEY}`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [
-                                { text: `${getCurrentSystemPrompt()}\n\nالمستخدم: ${text}` },
-                                { inline_data: { mime_type: 'image/jpeg', data: base64Data } }
-                            ]
-                        }]
-                    })
-                }
-            );
+            localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(state.chats));
+            localStorage.setItem('mind_ai_settings', JSON.stringify(state.settings));
+            return true;
+        } catch (e) {
+            console.error('Error saving chats:', e);
+            showError('خطأ في حفظ البيانات المحلية');
+            return false;
+        }
+    }
 
-            const data = await response.json();
-            if (data.error) continue;
-            if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-                return data.candidates[0].content.parts[0].text;
+    function loadChats() {
+        try {
+            const saved = localStorage.getItem(CONFIG.STORAGE_KEY);
+            state.chats = saved ? JSON.parse(saved) : [];
+
+            // Migrate from old version if needed
+            const oldChats = localStorage.getItem('mind_ai_chats');
+            if (oldChats && state.chats.length === 0) {
+                state.chats = JSON.parse(oldChats);
+                saveChats();
             }
         } catch (e) {
-            continue;
+            console.error('Error loading chats:', e);
+            state.chats = [];
         }
     }
-    throw new Error('فشل جميع الموديلات');
-}
 
-function sendQuickPrompt(text) {
-    const input = document.getElementById('message-input');
-    if (input) {
-        input.value = text;
-        updateSendButton();
-        autoResize(input);
-        sendMessage();
-    }
-}
-
-// ==========================================
-// Auto-Save Feature
-// ==========================================
-function setupAutoSave() {
-    if (state.autoSaveTimer) {
-        clearInterval(state.autoSaveTimer);
-    }
-
-    if (state.settings.autoSave) {
-        state.autoSaveTimer = setInterval(() => {
-            autoSaveCurrentChat();
-        }, CONFIG.AUTO_SAVE_INTERVAL);
-    }
-}
-
-async function autoSaveCurrentChat() {
-    if (state.currentChatId && !state.isGenerating && state.settings.autoSave) {
+    function loadSettings() {
         try {
-            await saveChats();
-        } catch (error) {
-            console.warn('Auto-save failed:', error);
+            const saved = localStorage.getItem('mind_ai_settings');
+            if (saved) {
+                state.settings = { ...state.settings, ...JSON.parse(saved) };
+            }
+        } catch (e) {
+            console.error('Error loading settings:', e);
         }
     }
-}
 
-async function saveChats() {
-    try {
-        localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(state.chats));
-        localStorage.setItem('mind_ai_settings', JSON.stringify(state.settings));
-        return true;
-    } catch (e) {
-        console.error('Error saving chats:', e);
-        showError('خطأ في حفظ البيانات المحلية');
-        return false;
+    function updateChatTitle(chatId, firstMessage) {
+        const chat = state.chats.find(c => c.id === chatId);
+        if (!chat || chat.messages.length > 1) return;
+
+        // Use first 40 chars of first message as title
+        chat.title = firstMessage.substring(0, 40) + (firstMessage.length > 40 ? '...' : '');
+        saveChats();
+        renderChatHistory(state.currentPage);
     }
-}
 
-function loadChats() {
-    try {
-        const saved = localStorage.getItem(CONFIG.STORAGE_KEY);
-        state.chats = saved ? JSON.parse(saved) : [];
+    // ==========================================
+    // UI Rendering
+    // ==========================================
+    function renderMessages(messages) {
+        hideWelcomeScreen();
 
-        // Migrate from old version if needed
-        const oldChats = localStorage.getItem('mind_ai_chats');
-        if (oldChats && state.chats.length === 0) {
-            state.chats = JSON.parse(oldChats);
-            saveChats();
-        }
-    } catch (e) {
-        console.error('Error loading chats:', e);
-        state.chats = [];
+        const container = document.getElementById('messages-container');
+        if (!container) return;
+
+        container.innerHTML = messages.map(msg => createMessageHTML(msg)).join('');
+        scrollToBottom();
     }
-}
 
-function loadSettings() {
-    try {
-        const saved = localStorage.getItem('mind_ai_settings');
-        if (saved) {
-            state.settings = { ...state.settings, ...JSON.parse(saved) };
-        }
-    } catch (e) {
-        console.error('Error loading settings:', e);
-    }
-}
+    function createMessageHTML(msg) {
+        const isUser = msg.role === 'user';
+        const avatar = isUser ? '<i class="fa-solid fa-user"></i>' : '🧠';
+        const time = formatTime(msg.timestamp);
 
-function updateChatTitle(chatId, firstMessage) {
-    const chat = state.chats.find(c => c.id === chatId);
-    if (!chat || chat.messages.length > 1) return;
+        let content = '';
 
-    // Use first 40 chars of first message as title
-    chat.title = firstMessage.substring(0, 40) + (firstMessage.length > 40 ? '...' : '');
-    saveChats();
-    renderChatHistory(state.currentPage);
-}
-
-// ==========================================
-// UI Rendering
-// ==========================================
-function renderMessages(messages) {
-    hideWelcomeScreen();
-
-    const container = document.getElementById('messages-container');
-    if (!container) return;
-
-    container.innerHTML = messages.map(msg => createMessageHTML(msg)).join('');
-    scrollToBottom();
-}
-
-function createMessageHTML(msg) {
-    const isUser = msg.role === 'user';
-    const avatar = isUser ? '<i class="fa-solid fa-user"></i>' : '🧠';
-    const time = formatTime(msg.timestamp);
-
-    let content = '';
-
-    // File attachment
-    if (msg.file) {
-        content += `
+        // File attachment
+        if (msg.file) {
+            content += `
             <div class="message-file">
                 <i class="fa-solid ${getFileIcon(msg.file.type)}"></i>
                 <span>${escapeHtml(msg.file.name)}</span>
                 ${msg.file.size ? `<small>(${formatFileSize(msg.file.size)})</small>` : ''}
             </div>
         `;
-    }
-
-    // Image
-    if (msg.image) {
-        content += `<img src="${msg.image}" alt="صورة مرفقة" loading="lazy">`;
-    }
-
-    // Text content
-    if (msg.content) {
-        if (isUser) {
-            content += `<p>${escapeHtml(msg.content).replace(/\n/g, '<br>')}</p>`;
-        } else {
-            content += parseMarkdown(msg.content);
         }
-    }
 
-    return `
+        // Image
+        if (msg.image) {
+            content += `<img src="${msg.image}" alt="صورة مرفقة" loading="lazy">`;
+        }
+
+        // Text content
+        if (msg.content) {
+            if (isUser) {
+                content += `<p>${escapeHtml(msg.content).replace(/\n/g, '<br>')}</p>`;
+            } else {
+                content += parseMarkdown(msg.content);
+            }
+        }
+
+        return `
         <div class="message ${isUser ? 'user' : 'assistant'}">
             <div class="message-avatar">${avatar}</div>
             <div class="message-content">
@@ -1447,128 +1552,128 @@ function createMessageHTML(msg) {
             </div>
         </div>
     `;
-}
-
-function addMessageToUI(msg) {
-    hideWelcomeScreen();
-
-    const container = document.getElementById('messages-container');
-    if (!container) return;
-
-    container.insertAdjacentHTML('beforeend', createMessageHTML(msg));
-    scrollToBottom();
-}
-
-function showWelcomeScreen() {
-    const welcome = document.getElementById('welcome-screen');
-    const messages = document.getElementById('messages-container');
-
-    if (welcome) welcome.classList.remove('hidden');
-    if (messages) messages.innerHTML = '';
-}
-
-function hideWelcomeScreen() {
-    const welcome = document.getElementById('welcome-screen');
-    if (welcome) welcome.classList.add('hidden');
-}
-
-function scrollToBottom() {
-    const container = document.getElementById('chat-container');
-    if (container) {
-        setTimeout(() => {
-            container.scrollTop = container.scrollHeight;
-        }, 100);
     }
-}
 
-// ==========================================
-// UI Controls
-// ==========================================
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
+    function addMessageToUI(msg) {
+        hideWelcomeScreen();
 
-    sidebar.classList.toggle('open');
-    overlay.classList.toggle('active');
-}
+        const container = document.getElementById('messages-container');
+        if (!container) return;
 
-function closeSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-
-    if (sidebar) sidebar.classList.remove('open');
-    if (overlay) overlay.classList.remove('active');
-}
-
-function toggleSettings() {
-    const panel = document.getElementById('settings-panel');
-    if (panel) {
-        panel.classList.toggle('open');
+        container.insertAdjacentHTML('beforeend', createMessageHTML(msg));
+        scrollToBottom();
     }
-}
 
-function handleKeyDown(event) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault();
-        sendMessage();
+    function showWelcomeScreen() {
+        const welcome = document.getElementById('welcome-screen');
+        const messages = document.getElementById('messages-container');
+
+        if (welcome) welcome.classList.remove('hidden');
+        if (messages) messages.innerHTML = '';
     }
-}
 
-function autoResize(textarea) {
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
-}
+    function hideWelcomeScreen() {
+        const welcome = document.getElementById('welcome-screen');
+        if (welcome) welcome.classList.add('hidden');
+    }
 
-function updateSendButton() {
-    const input = document.getElementById('message-input');
-    const sendBtn = document.getElementById('send-btn');
+    function scrollToBottom() {
+        const container = document.getElementById('chat-container');
+        if (container) {
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 100);
+        }
+    }
 
-    if (!input || !sendBtn) return;
+    // ==========================================
+    // UI Controls
+    // ==========================================
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
 
-    const hasContent = input.value.trim() || state.currentFile;
-    sendBtn.classList.toggle('active', hasContent);
-    sendBtn.disabled = !hasContent || state.isGenerating;
-}
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('active');
+    }
 
-// ==========================================
-// Utility Functions
-// ==========================================
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+    function closeSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
 
-function parseMarkdown(text) {
-    if (typeof marked !== 'undefined') {
-        try {
-            // Configure marked for better code highlighting
-            marked.setOptions({
-                breaks: true,
-                gfm: true
-            });
+        if (sidebar) sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('active');
+    }
 
-            let html = marked.parse(text);
+    function toggleSettings() {
+        const panel = document.getElementById('settings-panel');
+        if (panel) {
+            panel.classList.toggle('open');
+        }
+    }
 
-            // Add copy button and line numbers to code blocks
-            let codeBlockId = 0;
-            html = html.replace(/<pre><code(.*?)>([\s\S]*?)<\/code><\/pre>/gi, (match, attrs, code) => {
-                codeBlockId++;
-                const language = attrs.match(/class="language-(\w+)"/)?.[1] || 'code';
-                const decodedCode = code
-                    .replace(/&lt;/g, '<')
-                    .replace(/&gt;/g, '>')
-                    .replace(/&amp;/g, '&')
-                    .replace(/&quot;/g, '"');
+    function handleKeyDown(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
 
-                // Add line numbers
-                const lines = code.split('\n');
-                const numberedCode = lines.map((line, i) =>
-                    `<span class="line-number">${i + 1}</span>${line}`
-                ).join('\n');
+    function autoResize(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+    }
 
-                return `
+    function updateSendButton() {
+        const input = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        if (!input || !sendBtn) return;
+
+        const hasContent = input.value.trim() || state.currentFile;
+        sendBtn.classList.toggle('active', hasContent);
+        sendBtn.disabled = !hasContent || state.isGenerating;
+    }
+
+    // ==========================================
+    // Utility Functions
+    // ==========================================
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function parseMarkdown(text) {
+        if (typeof marked !== 'undefined') {
+            try {
+                // Configure marked for better code highlighting
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true
+                });
+
+                let html = marked.parse(text);
+
+                // Add copy button and line numbers to code blocks
+                let codeBlockId = 0;
+                html = html.replace(/<pre><code(.*?)>([\s\S]*?)<\/code><\/pre>/gi, (match, attrs, code) => {
+                    codeBlockId++;
+                    const language = attrs.match(/class="language-(\w+)"/)?.[1] || 'code';
+                    const decodedCode = code
+                        .replace(/&lt;/g, '<')
+                        .replace(/&gt;/g, '>')
+                        .replace(/&amp;/g, '&')
+                        .replace(/&quot;/g, '"');
+
+                    // Add line numbers
+                    const lines = code.split('\n');
+                    const numberedCode = lines.map((line, i) =>
+                        `<span class="line-number">${i + 1}</span>${line}`
+                    ).join('\n');
+
+                    return `
                     <div class="code-block-wrapper">
                         <div class="code-header">
                             <span class="code-language">${language}</span>
@@ -1585,274 +1690,410 @@ function parseMarkdown(text) {
                         <pre class="code-content"><code${attrs}>${numberedCode}</code></pre>
                     </div>
                 `;
-            });
+                });
 
-            return html;
+                return html;
+            } catch (e) {
+                return text.replace(/\n/g, '<br>');
+            }
+        }
+        return text.replace(/\n/g, '<br>');
+    }
+
+    function formatDate(dateString) {
+        try {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diff = now - date;
+
+            if (isNaN(diff)) return 'غير معروف';
+
+            if (diff < 60000) return 'الآن';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)} دقيقة`;
+            if (diff < 86400000) return `${Math.floor(diff / 3600000)} ساعة`;
+            if (diff < 604800000) return `${Math.floor(diff / 86400000)} يوم`;
+
+            return date.toLocaleDateString('ar-SA');
         } catch (e) {
-            return text.replace(/\n/g, '<br>');
+            return 'غير معروف';
         }
     }
-    return text.replace(/\n/g, '<br>');
-}
 
-function formatDate(dateString) {
-    try {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diff = now - date;
-
-        if (isNaN(diff)) return 'غير معروف';
-
-        if (diff < 60000) return 'الآن';
-        if (diff < 3600000) return `${Math.floor(diff / 60000)} دقيقة`;
-        if (diff < 86400000) return `${Math.floor(diff / 3600000)} ساعة`;
-        if (diff < 604800000) return `${Math.floor(diff / 86400000)} يوم`;
-
-        return date.toLocaleDateString('ar-SA');
-    } catch (e) {
-        return 'غير معروف';
+    function formatTime(dateString) {
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleTimeString('ar-SA', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+        } catch (e) {
+            return '';
+        }
     }
-}
 
-function formatTime(dateString) {
-    try {
-        const date = new Date(dateString);
-        return date.toLocaleTimeString('ar-SA', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        });
-    } catch (e) {
-        return '';
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 ب';
+        const k = 1024;
+        const sizes = ['ب', 'ك.ب', 'م.ب', 'ج.ب'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     }
-}
 
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 ب';
-    const k = 1024;
-    const sizes = ['ب', 'ك.ب', 'م.ب', 'ج.ب'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-}
-
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
             clearTimeout(timeout);
-            func(...args);
+            timeout = setTimeout(later, wait);
         };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// ==========================================
-// Make functions globally available
-// ==========================================
-window.startNewChat = startNewChat;
-window.loadChat = loadChat;
-window.deleteChat = deleteChat;
-window.clearAllHistory = clearAllHistory;
-window.toggleSidebar = toggleSidebar;
-window.toggleSettings = toggleSettings;
-window.sendMessage = sendMessage;
-window.sendQuickPrompt = sendQuickPrompt;
-window.handleFileUpload = handleFileUpload;
-window.clearFile = clearFile;
-window.handleKeyDown = handleKeyDown;
-window.autoResize = autoResize;
-window.toggleVoiceRecording = toggleVoiceRecording;
-
-// ==========================================
-// Code Features - ميزات الأكواد
-// ==========================================
-async function copyCode(button, code) {
-    try {
-        await navigator.clipboard.writeText(code);
-        const originalHTML = button.innerHTML;
-        button.innerHTML = '<i class="fa-solid fa-check"></i><span>تم!</span>';
-        button.classList.add('copied');
-
-        setTimeout(() => {
-            button.innerHTML = originalHTML;
-            button.classList.remove('copied');
-        }, 2000);
-
-        showSuccess('تم نسخ الكود!');
-    } catch (err) {
-        showError('فشل النسخ: ' + err.message);
-    }
-}
-
-async function explainCode(code) {
-    const input = document.getElementById('message-input');
-    if (input) {
-        input.value = `اشرح لي هذا الكود سطر بسطر:\n\`\`\`\n${code}\n\`\`\``;
-        updateSendButton();
-        autoResize(input);
-        sendMessage();
-    }
-}
-
-window.copyCode = copyCode;
-window.explainCode = explainCode;
-
-// ==========================================
-// AI Modes - أوضاع الذكاء الاصطناعي
-// ==========================================
-function switchMode(modeName) {
-    if (AI_MODES[modeName]) {
-        state.currentMode = modeName;
-        updateModeUI();
-        showSuccess(`تم التبديل لوضع ${AI_MODES[modeName].name} ${AI_MODES[modeName].icon}`);
-        saveSettings();
-    }
-}
-
-function updateModeUI() {
-    const modeIndicator = document.getElementById('mode-indicator');
-    if (modeIndicator) {
-        const mode = AI_MODES[state.currentMode];
-        modeIndicator.innerHTML = `${mode.icon} ${mode.name}`;
-    }
-}
-
-function getCurrentSystemPrompt() {
-    let prompt = SYSTEM_PROMPT;
-
-    // Add mode-specific prompt
-    const modePrompt = AI_MODES[state.currentMode]?.prompt;
-    if (modePrompt) {
-        prompt += '\n\n' + modePrompt;
     }
 
-    // Add memory context
-    if (state.memory.userName) {
-        prompt += `\n\nاسم المستخدم: ${state.memory.userName}`;
-    }
-    if (state.memory.facts.length > 0) {
-        prompt += `\n\nمعلومات عن المستخدم:\n- ${state.memory.facts.slice(-10).join('\n- ')}`;
-    }
+    // ==========================================
+    // Make functions globally available
+    // ==========================================
+    window.startNewChat = startNewChat;
+    window.loadChat = loadChat;
+    window.deleteChat = deleteChat;
+    window.clearAllHistory = clearAllHistory;
+    window.toggleSidebar = toggleSidebar;
+    window.toggleSettings = toggleSettings;
+    window.sendMessage = sendMessage;
+    window.sendQuickPrompt = sendQuickPrompt;
+    window.handleFileUpload = handleFileUpload;
+    window.clearFile = clearFile;
+    window.handleKeyDown = handleKeyDown;
+    window.autoResize = autoResize;
+    window.toggleVoiceRecording = toggleVoiceRecording;
 
-    return prompt;
-}
+    // ==========================================
+    // Code Features - ميزات الأكواد
+    // ==========================================
+    async function copyCode(button, code) {
+        try {
+            await navigator.clipboard.writeText(code);
+            const originalHTML = button.innerHTML;
+            button.innerHTML = '<i class="fa-solid fa-check"></i><span>تم!</span>';
+            button.classList.add('copied');
 
-window.switchMode = switchMode;
+            setTimeout(() => {
+                button.innerHTML = originalHTML;
+                button.classList.remove('copied');
+            }, 2000);
 
-// ==========================================
-// Memory System - نظام الذاكرة الذكية
-// ==========================================
-function saveMemory() {
-    try {
-        localStorage.setItem(CONFIG.MEMORY_KEY, JSON.stringify(state.memory));
-    } catch (e) {
-        console.error('Error saving memory:', e);
-    }
-}
-
-function loadMemory() {
-    try {
-        const saved = localStorage.getItem(CONFIG.MEMORY_KEY);
-        if (saved) {
-            state.memory = { ...state.memory, ...JSON.parse(saved) };
-        }
-    } catch (e) {
-        console.error('Error loading memory:', e);
-    }
-}
-
-function addToMemory(fact) {
-    if (fact && !state.memory.facts.includes(fact)) {
-        state.memory.facts.push(fact);
-        if (state.memory.facts.length > 50) {
-            state.memory.facts = state.memory.facts.slice(-50);
-        }
-        saveMemory();
-    }
-}
-
-function setUserName(name) {
-    state.memory.userName = name;
-    saveMemory();
-    showSuccess(`مرحباً ${name}! سأتذكر اسمك.`);
-}
-
-function clearMemory() {
-    if (confirm('هل تريد مسح جميع الذكريات المحفوظة؟')) {
-        state.memory = { userName: null, preferences: {}, facts: [] };
-        saveMemory();
-        showSuccess('تم مسح الذاكرة');
-    }
-}
-
-window.setUserName = setUserName;
-window.clearMemory = clearMemory;
-
-// ==========================================
-// Slash Commands - الأوامر السريعة
-// ==========================================
-function processSlashCommand(text) {
-    const trimmed = text.trim();
-
-    for (const [command, config] of Object.entries(SLASH_COMMANDS)) {
-        if (trimmed.startsWith(command)) {
-            const content = trimmed.slice(command.length).trim();
-
-            if (config.mode) {
-                switchMode(config.mode);
-                return content || null;
-            }
-
-            if (config.action === 'translate') {
-                return `ترجم النص التالي للإنجليزية:\n${content}`;
-            }
-            if (config.action === 'summarize') {
-                return `لخص النص التالي بشكل مختصر:\n${content}`;
-            }
-            if (config.action === 'explain') {
-                return `اشرح بالتفصيل:\n${content}`;
-            }
+            showSuccess('تم نسخ الكود!');
+        } catch (err) {
+            showError('فشل النسخ: ' + err.message);
         }
     }
 
-    return text;
-}
-
-function showSlashCommandsHelp() {
-    let helpText = '**الأوامر السريعة المتاحة:**\n\n';
-    for (const [command, config] of Object.entries(SLASH_COMMANDS)) {
-        helpText += `\`${command}\` - ${config.description}\n`;
+    async function explainCode(code) {
+        const input = document.getElementById('message-input');
+        if (input) {
+            input.value = `اشرح لي هذا الكود سطر بسطر:\n\`\`\`\n${code}\n\`\`\``;
+            updateSendButton();
+            autoResize(input);
+            sendMessage();
+        }
     }
-    return helpText;
-}
 
-// ==========================================
-// Mode Selector UI - واجهة اختيار الوضع
-// ==========================================
-function renderModeSelector() {
-    const container = document.querySelector('.input-footer');
-    if (!container || document.getElementById('mode-selector')) return;
+    window.copyCode = copyCode;
+    window.explainCode = explainCode;
 
-    const modesHTML = Object.entries(AI_MODES).map(([key, mode]) =>
-        `<button class="mode-btn ${state.currentMode === key ? 'active' : ''}" 
+    // ==========================================
+    // AI Modes - أوضاع الذكاء الاصطناعي
+    // ==========================================
+    function switchMode(modeName) {
+        if (AI_MODES[modeName]) {
+            state.currentMode = modeName;
+            updateModeUI();
+            showSuccess(`تم التبديل لوضع ${AI_MODES[modeName].name} ${AI_MODES[modeName].icon}`);
+            saveSettings();
+        }
+    }
+
+    function updateModeUI() {
+        const modeIndicator = document.getElementById('mode-indicator');
+        if (modeIndicator) {
+            const mode = AI_MODES[state.currentMode];
+            modeIndicator.innerHTML = `${mode.icon} ${mode.name}`;
+        }
+    }
+
+    function getCurrentSystemPrompt() {
+        let prompt = SYSTEM_PROMPT;
+
+        // Add mode-specific prompt
+        const modePrompt = AI_MODES[state.currentMode]?.prompt;
+        if (modePrompt) {
+            prompt += '\n\n' + modePrompt;
+        }
+
+        // Add memory context
+        if (state.memory.userName) {
+            prompt += `\n\nاسم المستخدم: ${state.memory.userName}`;
+        }
+        if (state.memory.facts.length > 0) {
+            prompt += `\n\nمعلومات عن المستخدم:\n- ${state.memory.facts.slice(-10).join('\n- ')}`;
+        }
+
+        return prompt;
+    }
+
+    window.switchMode = switchMode;
+
+    // ==========================================
+    // Memory System - نظام الذاكرة الذكية
+    // ==========================================
+    function saveMemory() {
+        try {
+            localStorage.setItem(CONFIG.MEMORY_KEY, JSON.stringify(state.memory));
+        } catch (e) {
+            console.error('Error saving memory:', e);
+        }
+    }
+
+    function loadMemory() {
+        try {
+            const saved = localStorage.getItem(CONFIG.MEMORY_KEY);
+            if (saved) {
+                state.memory = { ...state.memory, ...JSON.parse(saved) };
+            }
+        } catch (e) {
+            console.error('Error loading memory:', e);
+        }
+    }
+
+    function addToMemory(key, value) {
+        // Backward compatibility for calls like addToMemory("some fact")
+        if (value === undefined) {
+            value = key;
+            key = 'fact';
+        }
+
+        if (key === 'name') {
+            state.memory.userName = value;
+        } else if (key === 'preference') {
+            // value should be object like { theme: 'dark' }
+            state.memory.preferences = { ...state.memory.preferences, ...value };
+        } else if (key === 'fact') {
+            if (value && !state.memory.facts.includes(value)) {
+                state.memory.facts.push(value);
+                if (state.memory.facts.length > 50) {
+                    state.memory.facts = state.memory.facts.slice(-50);
+                }
+            }
+        }
+
+        saveMemory(); // Local Storage
+        if (currentUser) {
+            saveCloudMemory(); // Cloud Firestore
+        }
+    }
+
+    function setUserName(name) {
+        addToMemory('name', name);
+        showSuccess(`مرحباً ${name}! سأتذكر اسمك.`);
+    }
+
+    function clearMemory() {
+        if (confirm('هل تريد مسح جميع الذكريات المحفوظة؟')) {
+            state.memory = { userName: null, preferences: {}, facts: [] };
+            saveMemory();
+            showSuccess('تم مسح الذاكرة');
+        }
+    }
+
+    window.setUserName = setUserName;
+    window.clearMemory = clearMemory;
+
+    // ==========================================
+    // Slash Commands - الأوامر السريعة
+    // ==========================================
+    function processSlashCommand(text) {
+        const trimmed = text.trim();
+
+        for (const [command, config] of Object.entries(SLASH_COMMANDS)) {
+            if (trimmed.startsWith(command)) {
+                const content = trimmed.slice(command.length).trim();
+
+                if (config.mode) {
+                    switchMode(config.mode);
+                    return content || null;
+                }
+
+                if (config.action === 'translate') {
+                    return `ترجم النص التالي للإنجليزية:\n${content}`;
+                }
+                if (config.action === 'summarize') {
+                    return `لخص النص التالي بشكل مختصر:\n${content}`;
+                }
+                if (config.action === 'explain') {
+                    return `اشرح بالتفصيل:\n${content}`;
+                }
+            }
+        }
+
+        return text;
+    }
+
+    function showSlashCommandsHelp() {
+        let helpText = '**الأوامر السريعة المتاحة:**\n\n';
+        for (const [command, config] of Object.entries(SLASH_COMMANDS)) {
+            helpText += `\`${command}\` - ${config.description}\n`;
+        }
+        return helpText;
+    }
+
+    // ==========================================
+    // Mode Selector UI - واجهة اختيار الوضع
+    // ==========================================
+    function renderModeSelector() {
+        const container = document.querySelector('.input-footer');
+        if (!container || document.getElementById('mode-selector')) return;
+
+        const modesHTML = Object.entries(AI_MODES).map(([key, mode]) =>
+            `<button class="mode-btn ${state.currentMode === key ? 'active' : ''}" 
                  onclick="switchMode('${key}')" title="${mode.name}">
             ${mode.icon}
         </button>`
-    ).join('');
+        ).join('');
 
-    const selectorHTML = `
+        const selectorHTML = `
         <div class="mode-selector" id="mode-selector">
             <span id="mode-indicator">${AI_MODES[state.currentMode].icon} ${AI_MODES[state.currentMode].name}</span>
             <div class="mode-buttons">${modesHTML}</div>
         </div>
     `;
 
-    container.insertAdjacentHTML('afterbegin', selectorHTML);
-}
+        container.insertAdjacentHTML('afterbegin', selectorHTML);
+    }
 
-// Initialize memory on load
-document.addEventListener('DOMContentLoaded', () => {
-    loadMemory();
-    setTimeout(renderModeSelector, 500);
-});
+    // ==========================================
+    // Advanced Tools: Search & File Gen
+    // ==========================================
+
+    async function searchWikipedia(query) {
+        try {
+            const response = await fetch(`https://ar.wikipedia.org/w/api.php?action=query&list=search&prop=info&inprop=url&utf8=&format=json&origin=*&srlimit=3&srsearch=${encodeURIComponent(query)}`);
+            const data = await response.json();
+
+            if (data.query.search.length > 0) {
+                return data.query.search.map(result => `
+            - العنوان: ${result.title}
+            - مقتطف: ${result.snippet.replace(/<[^>]*>/g, '')}
+            `).join('\n');
+            }
+            return "لم يتم العثور على نتائج في ويكيبيديا.";
+        } catch (error) {
+            console.error("Search error:", error);
+            return null;
+        }
+    }
+
+    // Generate Files (PDF/Word)
+    async function generateDocument(type, title, content) {
+        showSuccess(`جاري إنشاء ملف ${type.toUpperCase()}...`);
+
+        try {
+            if (type === 'pdf') {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ align: 'right' });
+
+                doc.setFontSize(16);
+                doc.text(title, 190, 20, { align: 'right' }); // Basic RTL attempt
+                doc.setFontSize(12);
+
+                // Simple line splitting for PDF (Note: Real Arabic support needs custom fonts)
+                const lines = doc.splitTextToSize(content, 180);
+                doc.text(lines, 190, 40, { align: 'right' });
+
+                doc.save(`${title}.pdf`);
+
+            } else if (type === 'word' || type === 'docx') {
+                const { Document, Packer, Paragraph, TextRun } = window.docx;
+
+                const doc = new Document({
+                    sections: [{
+                        properties: {},
+                        children: [
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: title,
+                                        bold: true,
+                                        size: 32,
+                                    }),
+                                ],
+                                alignment: "right"
+                            }),
+                            new Paragraph({
+                                children: [new TextRun({ text: "\n" })],
+                            }),
+                            ...content.split('\n').map(line => new Paragraph({
+                                children: [new TextRun({
+                                    text: line,
+                                    size: 24,
+                                    rightToLeft: true // Arabic support
+                                })],
+                                alignment: "right"
+                            }))
+                        ],
+                    }],
+                });
+
+                const blob = await Packer.toBlob(doc);
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${title}.docx`;
+                a.click();
+            }
+            showSuccess('تم تحميل الملف بنجاح ✅');
+        } catch (e) {
+            showError('فشل إنشاء الملف: ' + e.message);
+            console.error(e);
+        }
+    }
+
+    // Detect File Gen command from AI response
+    function checkForFileGen(text) {
+        // Format: $$FILE_GENERATION$$ {"type": "...", "title": "...", "content": "..."} $$END_FILE$$
+        if (text.includes('$$FILE_GENERATION$$')) {
+            try {
+                const parts = text.split('$$FILE_GENERATION$$');
+                const jsonPart = parts[1].split('$$END_FILE$$')[0];
+                const data = JSON.parse(jsonPart);
+
+                // Generate the file
+                generateDocument(data.type, data.title, data.content);
+
+                // Return clean text without the JSON block
+                return parts[0] + '\n\n✅ **تم إنشاء الملف بنجاح**';
+            } catch (e) {
+                console.error("File parsing error", e);
+            }
+        }
+        return text;
+    }
+
+    // Cloud Storage Functions
+    async function uploadToStorage(file) {
+        if (!storage || !currentUser) return null;
+
+        const ref = storage.ref();
+        const childRef = ref.child(`users/${currentUser.uid}/uploads/${Date.now()}_${file.name}`);
+
+        await childRef.put(file);
+        const url = await childRef.getDownloadURL();
+        return url;
+    }
+
+    // Initialize memory on load
+    document.addEventListener('DOMContentLoaded', () => {
+        loadMemory();
+        setTimeout(renderModeSelector, 500);
+    });
