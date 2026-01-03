@@ -2094,6 +2094,8 @@ async function sendToGroqVision(text, imageDataUrl) {
 
     // Initialize memory on load
     document.addEventListener('DOMContentLoaded', () => {
+        init(); // Critical: Start the app
         loadMemory();
+        updateAuthUI(null);
         setTimeout(renderModeSelector, 500);
     });
