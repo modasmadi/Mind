@@ -1382,8 +1382,10 @@ async function sendToGroqVision(text, imageInput, fallbackBase64 = null) {
 
 // Gemini fallback for images
 async function sendToGeminiFallback(text, imageDataUrl) {
-    // Extract base64 from data URL
-    const base64Data = imageDataUrl.split(',')[1];
+    // Extract base64 and mime type from data URL
+    const matches = imageDataUrl.match(/^data:(.+);base64,(.+)$/);
+    const mimeType = matches ? matches[1] : 'image/jpeg';
+    const base64Data = matches ? matches[2] : imageDataUrl.split(',')[1];
 
     const GEMINI_MODELS = ['gemini-1.5-flash', 'gemini-1.5-flash-002', 'gemini-2.0-flash'];
 
@@ -1398,7 +1400,7 @@ async function sendToGeminiFallback(text, imageDataUrl) {
                         contents: [{
                             parts: [
                                 { text: `${getCurrentSystemPrompt()}\n\nالمستخدم: ${text}` },
-                                { inline_data: { mime_type: 'image/jpeg', data: base64Data } }
+                                { inline_data: { mime_type: mimeType, data: base64Data } }
                             ]
                         }]
                     })
