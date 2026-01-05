@@ -1341,12 +1341,10 @@ async function sendToGeminiFallback(text, imageDataUrl) {
     const matches = imageDataUrl.match(/^data:(.+);base64,(.+)$/);
     const mimeType = matches ? matches[1] : 'image/jpeg';
     const base64Data = matches ? matches[2] : imageDataUrl.split(',')[1];
+    let lastErrorMsg = null;
 
     const GEMINI_MODELS = [
-        'gemini-1.5-flash',
-        'gemini-1.5-pro',
-        'gemini-1.5-flash-latest',
-        'gemini-pro-vision'
+        'gemini-1.5-flash'
     ];
 
     for (const model of GEMINI_MODELS) {
@@ -1368,15 +1366,21 @@ async function sendToGeminiFallback(text, imageDataUrl) {
             );
 
             const data = await response.json();
-            if (data.error) continue;
+            if (data.error) {
+                console.error(`❌ Model ${model} error:`, data.error);
+                lastErrorMsg = data.error.message;
+                continue;
+            }
             if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
                 return data.candidates[0].content.parts[0].text;
             }
         } catch (e) {
+            console.error(`❌ Model ${model} exception:`, e);
+            lastErrorMsg = e.message;
             continue;
         }
     }
-    throw new Error('فشل جميع الموديلات');
+    throw new Error(`فشل جميع الموديلات. آخر خطأ: ${lastErrorMsg || 'طريقة التحليل غير مدعومة'}`);
 }
 
 function sendQuickPrompt(text) {
