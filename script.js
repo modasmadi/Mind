@@ -10,7 +10,7 @@
 const CONFIG = {
     GROQ_API_KEY: "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",
     GEMINI_API_KEY: "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", // OpenRouter Key
-    MODEL: "llama-3.3-70b-versatile",
+    MODEL: "google/gemini-2.0-flash-exp:free", // Default to OpenRouter model
     MAX_TOKENS: 4096,
     STORAGE_KEY: "mind_ai_chats_v3",
     CURRENT_CHAT_KEY: "mind_ai_current_v3",
@@ -1216,14 +1216,17 @@ async function sendToGroq(chatMessages, currentMessage) {
         }
     }
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    // Use OpenRouter instead of Groq
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`
+            'Authorization': `Bearer ${CONFIG.GEMINI_API_KEY}`, // OpenRouter Key
+            "HTTP-Referer": "https://mind-ai.local",
+            "X-Title": "Mind AI Study Helper"
         },
         body: JSON.stringify({
-            model: CONFIG.MODEL,
+            model: CONFIG.MODEL, // google/gemini-2.0-flash-exp:free
             messages: messages,
             max_tokens: CONFIG.MAX_TOKENS,
             temperature: 0.7
