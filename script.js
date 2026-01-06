@@ -9,7 +9,7 @@
 // ==========================================
 const CONFIG = {
     GROQ_API_KEY: "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",
-    GEMINI_API_KEY: "AIzaSyBXSLS6TzQ1BfkbN0Khy7eM5ZnB-QYUnNI", // New user key
+    GEMINI_API_KEY: "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", // OpenRouter Key
     MODEL: "llama-3.3-70b-versatile",
     MAX_TOKENS: 4096,
     STORAGE_KEY: "mind_ai_chats_v3",
@@ -1336,51 +1336,76 @@ async function sendToGroqVision(text, imageInput, fallbackBase64 = null) {
 }
 
 // Gemini fallback for images
+// Gemini fallback for images (Using OpenRouter)
 async function sendToGeminiFallback(text, imageDataUrl) {
     // Extract base64 and mime type from data URL
     const matches = imageDataUrl.match(/^data:(.+);base64,(.+)$/);
-    const mimeType = matches ? matches[1] : 'image/jpeg';
-    const base64Data = matches ? matches[2] : imageDataUrl.split(',')[1];
+    // OpenRouter (via OpenAI format) expects simple image URL or data URL
+    // We can pass the full data URL directly in the content.
+
     let lastErrorMsg = null;
 
+    // OpenRouter Model IDs (Google Gemini variants)
     const GEMINI_MODELS = [
-        'gemini-1.5-flash'
+        'google/gemini-2.0-flash-exp:free', // New experimental model (Fast & Free)
+        'google/gemini-flash-1.5',          // Standard Flash
+        'google/gemini-pro-1.5',            // Pro version
+        'google/gemini-pro-vision-1.0'      // Legacy Vision
     ];
 
     for (const model of GEMINI_MODELS) {
         try {
-            const response = await fetch(
-                `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${CONFIG.GEMINI_API_KEY}`,
-                {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [
-                                { text: `${getCurrentSystemPrompt()}\n\nالمستخدم: ${text}` },
-                                { inline_data: { mime_type: mimeType, data: base64Data } }
+            console.log(`🚀 Trying OpenRouter Model: ${model}`);
+
+            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${CONFIG.GEMINI_API_KEY}`,
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://mind-ai.local", // Optional, required by OpenRouter
+                    "X-Title": "Mind AI Study Helper"
+                },
+                body: JSON.stringify({
+                    "model": model,
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": `${getCurrentSystemPrompt()}\n\nالمستخدم: ${text}`
+                                },
+                                {
+                                    "type": "image_url",
+                                    "image_url": {
+                                        "url": imageDataUrl // OpenRouter accepts standard Data URL
+                                    }
+                                }
                             ]
-                        }]
-                    })
-                }
-            );
+                        }
+                    ]
+                })
+            });
 
             const data = await response.json();
+
             if (data.error) {
                 console.error(`❌ Model ${model} error:`, data.error);
                 lastErrorMsg = data.error.message;
                 continue;
             }
-            if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
-                return data.candidates[0].content.parts[0].text;
+
+            if (data.choices?.[0]?.message?.content) {
+                return data.choices[0].message.content;
             }
+
         } catch (e) {
             console.error(`❌ Model ${model} exception:`, e);
             lastErrorMsg = e.message;
             continue;
         }
     }
-    throw new Error(`فشل جميع الموديلات. آخر خطأ: ${lastErrorMsg || 'طريقة التحليل غير مدعومة'}`);
+    throw new Error(`فشل جميع الموديلات. آخر خطأ: ${lastErrorMsg || 'OpenRouter Error'}`);
 }
 
 function sendQuickPrompt(text) {
