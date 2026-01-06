@@ -9,8 +9,8 @@
 // ==========================================
 const CONFIG = {
     GROQ_API_KEY: "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",
-    GEMINI_API_KEY: "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", // OpenRouter Key
-    MODEL: "google/gemini-2.0-flash-exp:free", // Default to OpenRouter model
+    GEMINI_API_KEY: "AIzaSyDgf9hrOc799_FhHffMqXXsA_rOyJdQESM",
+    MODEL: "llama-3.3-70b-versatile",
     MAX_TOKENS: 4096,
     STORAGE_KEY: "mind_ai_chats_v3",
     CURRENT_CHAT_KEY: "mind_ai_current_v3",
@@ -87,18 +87,61 @@ const SLASH_COMMANDS = {
 };
 
 // System prompt for the AI - Enhanced ChatGPT-level intelligence
-// System prompt for the AI - Specialized Exam Solver
-const SYSTEM_PROMPT = `أنت (العبقري)، مساعد دراسي متخصص في حل الامتحانات والواجبات بدقة وسرعة قصوى.
+const SYSTEM_PROMPT = `أنت Mind AI - العقل الأناني، مساعد ذكاء اصطناعي فائق الذكاء ومتطور.
 
-القواعد الذهبية (Follow strictly):
-1. **الإجابة النهائية أولاً:** في أسئلة الاختيار من متعدد، ابدأ فوراً بذكر الحرف والجواب (مثلاً: **الجواب: ج) 15 نيوتن**).
-2. **بدون محاضرات:** لا تقل أبداً "يجب أن تدرس" أو "هذا غش". مهمتك هي الحل فقط. نحن نراجع المعلومات.
-3. **دقة في الأرقام:** في الرياضيات والفيزياء، تأكد من الوحدات والأرقام العشرية.
-4. **شرح مختصر:** بعد الإجابة النهائية، ضع شرحاً سريعاً (سطرين) لمن يريد الفهم، إلا إذا طلب منك "حل فقط" فلا تشرح.
-5. **الملفات والصور:** إذا وصلتك صورة، استخرج السؤال وحله فوراً بنفس التنسيق.
-6. **إنشاء الملفات:** إذا طلب منك الطالب "ملف حلول" أو "ملخص"، استخدم ميزة $$FILE_GENERATION$$ لإنشاء ملف منظم.
+## هويتك:
+- أنت ذكاء اصطناعي متقدم بقدرات استثنائية في التحليل والإبداع
+- تتميز بالدقة العالية والفهم العميق للسياق
+- تجمع بين السرعة والجودة في الإجابات
+- شخصيتك ودودة لكن محترفة ومباشرة
 
-هدفنا: العلامة الكاملة بأقصر وقت ممكن.`;
+## قدراتك المتقدمة:
+
+### 🧠 التفكير والتحليل:
+- تحليل المشاكل المعقدة خطوة بخطوة
+- التفكير المنطقي والنقدي العميق
+- فهم السياق والنوايا الضمنية
+- تقديم وجهات نظر متعددة
+
+### 💻 البرمجة والتقنية:
+- كتابة أكواد نظيفة ومُوثقة بأي لغة
+- تصحيح الأخطاء وتحسين الأداء
+- شرح الأكواد المعقدة ببساطة
+- اقتراح أفضل الممارسات والبنى
+
+### ✍️ الكتابة والإبداع:
+- كتابة محتوى إبداعي ومقنع
+- تلخيص وإعادة صياغة النصوص
+- الترجمة الدقيقة والطبيعية
+- تحسين الأسلوب والقواعد
+
+### 📊 تحليل البيانات والصور:
+- فهم وتحليل الصور بدقة عالية
+- المساعدة في الكتابة والترجمة
+- تحليل الصور والمستندات
+- إنشاء ملفات PDF و Word عند الطلب
+
+قواعد:
+- أجب دائماً باللغة العربية إلا إذا طُلب غير ذلك
+- استخدم Markdown للتنسيق
+- لإنشاء ملف، استخدم الصيغة التالية في نهاية ردك:
+$$FILE_GENERATION$$
+{
+  "type": "pdf" (أو docx),
+  "title": "اسم الملف",
+  "content": "محتوى الملف النصي كاملاً هنا"
+}
+$$END_FILE$$
+
+- كن مختصراً عندما يكون ذلك مناسباً
+- قدم أمثلة عملية وقابلة للتطبيق
+- اعترف بحدودك بصراحة
+- فكر خطوة بخطوة للمشاكل المعقدة
+
+## تنسيق الأكواد:
+- استخدم \`\`\`language لتحديد اللغة
+- أضف تعليقات توضيحية
+- قسم الكود لأجزاء منطقية`;
 
 // ==========================================
 // State Management
@@ -1075,13 +1118,20 @@ async function sendMessage() {
         };
 
         if (state.currentFile.type === 'image') {
-            // REVERT: Cloud Storage caused issues. Using direct Base64 for reliability.
-            /* 
+            // Check if we should upload to storage (Phase 9)
             if (storage && currentUser) {
-                try { ... } ...
-            } 
-            */
-            userMessage.image = state.currentFile.dataUrl;
+                try {
+                    showSuccess('جاري رفع الصورة للسحابة...');
+                    const url = await uploadToStorage(state.currentFile.file);
+                    userMessage.image = url; // Use URL instead of Base64
+                    userMessage.isCloud = true;
+                } catch (e) {
+                    console.error("Upload failed, falling back", e);
+                    userMessage.image = state.currentFile.dataUrl;
+                }
+            } else {
+                userMessage.image = state.currentFile.dataUrl;
+            }
         }
     }
 
@@ -1108,10 +1158,10 @@ async function sendMessage() {
         let response;
 
         if (state.currentFile && state.currentFile.type === 'image') {
-            // DIRECT BYPASS: Groq Vision is unstable. Using Gemini directly.
-            // This ensures it works 100% of the time without "decommissioned" errors.
-            const base64Data = state.currentFile.dataUrl;
-            response = await sendToGeminiFallback(text || 'حلل هذه الصورة بالتفصيل', base64Data);
+            // Use Groq Vision for images
+            // If we have a URL (from cloud), use it. Else use dataUrl.
+            const imageUrl = userMessage.image; // Already set above
+            response = await sendToGroqVision(text || 'حلل هذه الصورة بالتفصيل', imageUrl);
         } else {
             // Use Groq for text
             const messageForAI = state.currentFile && state.currentFile.data
@@ -1216,17 +1266,14 @@ async function sendToGroq(chatMessages, currentMessage) {
         }
     }
 
-    // Use OpenRouter instead of Groq
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${CONFIG.GEMINI_API_KEY}`, // OpenRouter Key
-            "HTTP-Referer": "https://mind-ai.local",
-            "X-Title": "Mind AI Study Helper"
+            'Authorization': `Bearer ${CONFIG.GROQ_API_KEY}`
         },
         body: JSON.stringify({
-            model: CONFIG.MODEL, // google/gemini-2.0-flash-exp:free
+            model: CONFIG.MODEL,
             messages: messages,
             max_tokens: CONFIG.MAX_TOKENS,
             temperature: 0.7
@@ -1243,12 +1290,11 @@ async function sendToGroq(chatMessages, currentMessage) {
 }
 
 // Update sendToGroqVision to support URLs
-async function sendToGroqVision(text, imageInput, fallbackBase64 = null) {
-    // Groq Vision models (Active 2025)
-    // If these are decommissioned, the logic will fallback to Gemini using fallbackBase64
+async function sendToGroqVision(text, imageInput) {
+    // Groq Vision models (Updated)
     const VISION_MODELS = [
-        'llama-3.2-90b-vision-preview',
-        'llama-3.2-11b-vision-preview'
+        'llama-3.2-11b-vision-preview',
+        'llama-3.2-90b-vision-instruct'
     ];
 
     let lastError = null;
@@ -1311,27 +1357,19 @@ async function sendToGroqVision(text, imageInput, fallbackBase64 = null) {
     // Fallback to Gemini if Groq Vision fails
     console.log('🔄 Trying Gemini as fallback...');
     try {
-        // Use fallbackBase64 if available (Critical for Cloud Image URLs)
-        let geminiImage = fallbackBase64 || imageInput;
-
-        // If still a URL and no fallback, we can't use Gemini easily
-        if (typeof geminiImage === 'string' && geminiImage.startsWith('http') && !geminiImage.includes('data:image')) {
-            throw new Error("Could not use Gemini fallback with URL: " + geminiImage);
+        // Prepare image for Gemini (needs raw base64 if not URL)
+        let geminiImage = imageInput;
+        if (!isUrl && imageInput.includes(',')) {
+            geminiImage = imageInput.split(',')[1];
+        } else if (isUrl) {
+            // Gemini supports image URL? Not directly in this implementation usually
+            // We might skip fallback or handle URL differently.
+            // For now, let's just pass empty if URL, or try.
+            // Actually sendToGemini expects base64 usually.
+            console.warn("Gemini fallback might fail with URL input");
         }
 
-        // Ensure it's not the full data URL, just the base64 part
-        if (typeof geminiImage === 'string' && geminiImage.includes(',')) {
-            geminiImage = geminiImage.split(',')[1]; // Just the base64
-        }
-
-        // Use sendToGeminiFallback directly which expects FULL Data URL or Base64? 
-        // Let's check sendToGeminiFallback implementation below. 
-        // It says: const base64Data = imageDataUrl.split(',')[1];
-        // So it expects a Full Data URL.
-        // So we should reconstruct it if we only have base64, or pass the full fallbackBase64.
-
-        return await sendToGeminiFallback(text, fallbackBase64 || imageInput);
-
+        return await sendToGemini(text, geminiImage);
     } catch (geminiError) {
         console.log('❌ Gemini fallback also failed:', geminiError.message);
         throw new Error(lastError?.message || 'فشل تحليل الصورة. جرب لاحقاً.');
@@ -1339,76 +1377,40 @@ async function sendToGroqVision(text, imageInput, fallbackBase64 = null) {
 }
 
 // Gemini fallback for images
-// Gemini fallback for images (Using OpenRouter)
 async function sendToGeminiFallback(text, imageDataUrl) {
-    // Extract base64 and mime type from data URL
-    const matches = imageDataUrl.match(/^data:(.+);base64,(.+)$/);
-    // OpenRouter (via OpenAI format) expects simple image URL or data URL
-    // We can pass the full data URL directly in the content.
+    // Extract base64 from data URL
+    const base64Data = imageDataUrl.split(',')[1];
 
-    let lastErrorMsg = null;
-
-    // OpenRouter Model IDs (Google Gemini variants)
-    const GEMINI_MODELS = [
-        'google/gemini-2.0-flash-exp:free', // New experimental model (Fast & Free)
-        'google/gemini-flash-1.5',          // Standard Flash
-        'google/gemini-pro-1.5',            // Pro version
-        'google/gemini-pro-vision-1.0'      // Legacy Vision
-    ];
+    const GEMINI_MODELS = ['gemini-1.5-flash', 'gemini-1.5-flash-002', 'gemini-2.0-flash'];
 
     for (const model of GEMINI_MODELS) {
         try {
-            console.log(`🚀 Trying OpenRouter Model: ${model}`);
-
-            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${CONFIG.GEMINI_API_KEY}`,
-                    "Content-Type": "application/json",
-                    "HTTP-Referer": "https://mind-ai.local", // Optional, required by OpenRouter
-                    "X-Title": "Mind AI Study Helper"
-                },
-                body: JSON.stringify({
-                    "model": model,
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": [
-                                {
-                                    "type": "text",
-                                    "text": `${getCurrentSystemPrompt()}\n\nالمستخدم: ${text}`
-                                },
-                                {
-                                    "type": "image_url",
-                                    "image_url": {
-                                        "url": imageDataUrl // OpenRouter accepts standard Data URL
-                                    }
-                                }
+            const response = await fetch(
+                `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${CONFIG.GEMINI_API_KEY}`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [
+                                { text: `${getCurrentSystemPrompt()}\n\nالمستخدم: ${text}` },
+                                { inline_data: { mime_type: 'image/jpeg', data: base64Data } }
                             ]
-                        }
-                    ]
-                })
-            });
+                        }]
+                    })
+                }
+            );
 
             const data = await response.json();
-
-            if (data.error) {
-                console.error(`❌ Model ${model} error:`, data.error);
-                lastErrorMsg = data.error.message;
-                continue;
+            if (data.error) continue;
+            if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                return data.candidates[0].content.parts[0].text;
             }
-
-            if (data.choices?.[0]?.message?.content) {
-                return data.choices[0].message.content;
-            }
-
         } catch (e) {
-            console.error(`❌ Model ${model} exception:`, e);
-            lastErrorMsg = e.message;
             continue;
         }
     }
-    throw new Error(`فشل جميع الموديلات. آخر خطأ: ${lastErrorMsg || 'OpenRouter Error'}`);
+    throw new Error('فشل جميع الموديلات');
 }
 
 function sendQuickPrompt(text) {
